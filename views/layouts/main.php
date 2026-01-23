@@ -52,6 +52,11 @@ $this->beginPage();
                             <i class="fas fa-envelope"></i> Messages
                         </a>
                     </li>
+                    <li class="nav-item" title="Analyse Social Media Posts">
+                        <a class="nav-link" href="<?= Url::to(['osint/index']) ?>">
+                            <i class="fab fa-connectdevelop"></i> OSINT
+                        </a>
+                    </li>
                     <?php endif; ?>
                 </ul>
                 <ul class="navbar-nav">
