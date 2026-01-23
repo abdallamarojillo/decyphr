@@ -7,7 +7,7 @@ use yii\base\Component;
 use GuzzleHttp\Client;
 use GuzzleHttp\Promise;
 
-
+//this component analyses twitter(x), facebook and tiktok posts for analysis.
 class GlobalOSINTAnalyzer extends Component
 {
     private $client;
