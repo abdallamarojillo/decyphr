@@ -8,6 +8,7 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Promise;
 
 //this component analyses twitter(x), facebook and tiktok posts for analysis.
+//TO DO: Check tiktok, facebook api responses via postman
 class GlobalOSINTAnalyzer extends Component
 {
     private $client;
