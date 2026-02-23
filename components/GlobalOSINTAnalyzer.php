@@ -8,9 +8,10 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Promise;
 use app\models\Log;
 use app\models\LogType;
+use app\models\OsintPost;
 
 //this component analyses twitter(x), facebook and tiktok posts for analysis.
-//TO DO: Check tiktok, facebook api responses via postman
+
 class GlobalOSINTAnalyzer extends Component
 {
     private $client;
@@ -72,6 +73,29 @@ public function fetchGlobalOSINTData($keyword)
         ];
 
         $aiAnalysis = $this->getAiIntelligence($keyword, $rawPlatforms);
+
+
+        // Persist posts to DB
+        foreach ($rawPlatforms as $platformName => $platformData) {
+            foreach ($platformData['data'] as $post) {
+                $osintPost = new OsintPost();
+                $osintPost->keyword = $keyword;
+                $osintPost->platform = $platformName;
+                $osintPost->text = $post['text'] ?? '';
+                $osintPost->author = $post['author'] ?? '';
+                $osintPost->created_at = (new \DateTime($post['created_at'] ?? 'now'))->format('Y-m-d H:i:s');
+                $osintPost->location = $post['location'] ?? null;
+                $osintPost->url = $post['url'] ?? null;
+                $osintPost->post_id = $post['post_id'] ?? null;
+                $osintPost->video_url = $post['video_url'] ?? null;
+                $osintPost->cover = $post['cover'] ?? null;
+                $osintPost->engagement = json_encode($post['engagement'] ?? []);
+                $osintPost->ai_report = json_encode($aiAnalysis ?? []);
+                $osintPost->threat_score = $aiAnalysis['numerical_score'] ?? 0;
+                $osintPost->save(false);
+            }
+        }
+
 
         return [
             'keyword' => $keyword,
