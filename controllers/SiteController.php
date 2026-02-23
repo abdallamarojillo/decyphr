@@ -7,6 +7,8 @@ use yii\web\Controller;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
 use app\models\LoginForm;
+use app\models\OtpForm;
+use app\models\User;
 
 class SiteController extends Controller
 {
@@ -55,19 +57,49 @@ class SiteController extends Controller
      */
     public function actionLogin()
     {
-        if (!Yii::$app->user->isGuest) {
-            return $this->redirect(['dashboard/index']);
-        }
-
         $model = new LoginForm();
+
         if ($model->load(Yii::$app->request->post()) && $model->login()) {
-            return $this->redirect(['dashboard/index']);
+            return $this->redirect(['site/verify-otp']);
         }
 
-        $model->password = '';
-        return $this->render('login', [
-            'model' => $model,
-        ]);
+        return $this->render('login', ['model' => $model]);
+    }
+
+    public function actionVerifyOtp()
+    {
+        $model = new OtpForm();
+
+        if ($model->load(Yii::$app->request->post()) && $model->verify()) {
+            return $this->goHome();
+        }
+
+        return $this->render('verify-otp', ['model' => $model]);
+    }
+
+    public function actionResendOtp()
+    {
+        $userId = Yii::$app->session->get('mfa_user_id');
+        if (!$userId) {
+            return $this->redirect(['site/login']);
+        }
+
+        $user = User::findOne($userId);
+        $otp = $user->generateOtp();
+
+        Yii::$app->mailer->compose()
+            ->setTo($user->email)
+            ->setSubject('Your New OTP')
+            ->setTextBody("Your OTP is: {$otp}")
+            ->send();
+
+        if (!empty($user->phone)) {
+            Yii::$app->sms->send($user->phone, "Your OTP is {$otp}");
+        }
+
+        Yii::$app->session->setFlash('success', 'A new OTP has been sent.');
+
+        return $this->redirect(['site/verify-otp']);
     }
 
     /**

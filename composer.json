@@ -10,7 +10,8 @@
         "guzzlehttp/guzzle": "^7.5",
         "nesbot/carbon": "^2.66",
         "vlucas/phpdotenv": "^5.5",
-        "setasign/fpdf": "^1.8"
+        "setasign/fpdf": "^1.8",
+        "yiisoft/yii2-symfonymailer": "^4.0"
     },
     "require-dev": {
         "yiisoft/yii2-debug": "~2.1.0",

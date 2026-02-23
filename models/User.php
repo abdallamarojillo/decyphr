@@ -121,4 +121,48 @@ class User extends ActiveRecord implements IdentityInterface
     {
         $this->auth_key = Yii::$app->security->generateRandomString();
     }
+
+
+    /**
+     * This is responsible for generating a unique otp
+     */
+    /**
+     * Generate OTP
+     */
+    public function GenerateOtp()
+    {
+        $otp = random_int(100000, 999999);
+
+        $this->otp_hash = Yii::$app->security->generatePasswordHash($otp);
+        $this->otp_is_used = 0;
+        $this->otp_expires_at = date('Y-m-d H:i:s', time() + 300); // 5 minutes
+        $this->save(false);
+
+        return $otp;
+    }
+
+    /**
+     * Validate OTP
+     */
+    public function ValidateOtp($otp)
+    {
+        if ($this->otp_is_used) {
+            return false;
+        }
+
+        if (strtotime($this->otp_expires_at) < time()) {
+            return false;
+        }
+
+        return Yii::$app->security->validatePassword($otp, $this->otp_hash);
+    }
+
+    /**
+     * Mark OTP as used
+     */
+    public function MarkOtpUsed()
+    {
+        $this->otp_is_used = 1;
+        $this->save(false);
+    }
 }

@@ -42,7 +42,7 @@ $this->title = 'OSINT Dashboard';
     <!-- LOADER -->
     <div id="loading-spinner" class="text-center py-5 d-none">
         <div class="spinner-border text-primary"></div>
-        <div class="mt-2 text-muted">Analyzing intelligence streams…</div>
+        <div class="mt-2 text-muted">Analyzing data sources…</div>
     </div>
 
     <!-- RESULTS -->
@@ -69,19 +69,19 @@ $this->title = 'OSINT Dashboard';
         <div class="row mb-4">
             <div class="col-md-4">
                 <div class="intel-panel">
-                    <h6>🗣 Decoded Language</h6>
+                    <h6> Decoded Language</h6>
                     <ul id="decoded-language"></ul>
                 </div>
             </div>
             <div class="col-md-4">
                 <div class="intel-panel">
-                    <h6>🚩 Dog Whistles</h6>
+                    <h6>Dog Whistles</h6>
                     <ul id="dog-whistles"></ul>
                 </div>
             </div>
             <div class="col-md-4">
                 <div class="intel-panel">
-                    <h6>📍 Localized Risks</h6>
+                    <h6> Localized Risks</h6>
                     <ul id="localized-risks"></ul>
                 </div>
             </div>
@@ -97,7 +97,7 @@ $this->title = 'OSINT Dashboard';
 
         <!-- PLATFORM TABS -->
         <ul class="nav nav-tabs mb-3" id="platformTabs">
-            <li class="nav-item"><a class="nav-link active" data-target="x-feed">X (Signal)</a></li>
+            <li class="nav-item"><a class="nav-link active" data-target="x-feed">X (Twitter)</a></li>
             <li class="nav-item"><a class="nav-link" data-target="facebook-feed">Facebook (Context)</a></li>
             <li class="nav-item"><a class="nav-link" data-target="tiktok-feed">TikTok (Narratives)</a></li>
         </ul>

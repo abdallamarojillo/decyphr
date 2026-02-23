@@ -49,14 +49,30 @@ class LoginForm extends Model
     }
 
     /**
-     * Logs in a user using the provided username and password.
-     * @return bool whether the user is logged in successfully
+     * Send an otp when a user supplies the correct username and password.
+     * @return bool whether the user is successfully authenticated
      */
     public function login()
     {
         if ($this->validate()) {
-            return Yii::$app->user->login($this->getUser(), $this->rememberMe ? 3600*24*30 : 0);
+            $user = $this->getUser();
+
+            // Generate OTP
+            $otp = $user->GenerateOtp();
+
+            // Send OTP
+            Yii::$app->mailer->compose()
+                ->setTo($user->email)
+                ->setSubject('Your Login OTP')
+                ->setTextBody("Your OTP is: {$otp}")
+                ->send();
+  
+
+            Yii::$app->session->set('mfa_user_id', $user->id);
+
+            return true;
         }
+
         return false;
     }
 
