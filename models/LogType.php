@@ -15,5 +15,6 @@ class LogType
     const ERROR    = 'ERROR';
     const AUDIT    = 'AUDIT';
     const INFO     = 'INFO';
+    const WARNING  = 'WARNING';
     const RECORD_CHANGE     = 'RECORD_CHANGE';
 }

@@ -9,6 +9,8 @@ use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
 use app\models\Log;
 use app\models\LogType;
+use app\models\OsintAiAnalysis;
+use app\models\OsintPost;
 
 /**
  * Global OSINT Threat Intelligence Controller
@@ -42,7 +44,13 @@ class OsintController extends Controller
      */
     public function actionIndex()
     {
-        return $this->render('index');
+        $osintaidata = OsintAiAnalysis::find()->orderBy(['id' => SORT_DESC])->all();
+        $relatedPosts = OsintPost::find()->all(); // Fetch all posts to filter in the view
+
+        return $this->render('index', [
+            'osintaidata' => $osintaidata,
+            'relatedPosts' => $relatedPosts
+        ]);
     }
 
     /**
@@ -53,26 +61,60 @@ class OsintController extends Controller
     {
         Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
         $keyword = Yii::$app->request->post('keyword');
-        
+
         if (!$keyword) {
             return ['success' => false, 'error' => 'No tactical keyword provided.'];
         }
 
         try {
-           $analyzer = Yii::$app->globalOSINTAnalyzer;
-            $data = $analyzer->fetchGlobalOSINTData($keyword);
+            $analyzer = Yii::$app->globalOSINTAnalyzer;
+            $platformData = $analyzer->fetchGlobalOSINTData($keyword);
 
-            // Log the event
+            // 1️. Ensure AI report exists and has correct keys
+            $aiReportRaw = $platformData['ai_report'] ?? [];
+            $aiReport = [
+                'threat_summary'     => $aiReportRaw['threat_summary'] ?? '',
+                'decoded_language'   => $aiReportRaw['decoded_language'] ?? [],
+                'dog_whistles'       => $aiReportRaw['dog_whistles'] ?? [],
+                'localized_risks'    => $aiReportRaw['localized_risks'] ?? [],
+                'location_suggestions'=> $aiReportRaw['location_suggestions'] ?? []
+            ];
+
+            // 2️. Threat score fallback
+            $threatScore = isset($platformData['threat_score']) ? (int) $platformData['threat_score'] : 0;
+
+            // 3️. Platforms fallback
+            $platforms = [];
+            foreach (['x','facebook','tiktok'] as $key) {
+                $platforms[$key] = $platformData['platforms'][$key] ?? ['data'=>[]];
+            }
+
+            // 4️⃣ Log the event
             Log::log(
                 'Sent OSINT for Analysis',
                 'Sent OSINT for Analysis with the keyword - '.$keyword,
                 LogType::API,
-                $data ?? NULL
+                $platformData ?? NULL
             );
 
-            return ['success' => true, 'data' => $data];
+            return [
+                'success' => true,
+                'data' => [
+                    'ai_report' => $aiReport,
+                    'threat_score' => $threatScore,
+                    'platforms' => $platforms
+                ]
+            ];
+
         } catch (\Exception $e) {
-            return ['success' => false, 'error' => $e->getMessage()];
+            Log::log(
+                'OSINT Fetch Failed',
+                'Keyword: '.$keyword.' | Error: '.$e->getMessage(),
+                LogType::ERROR,
+                []
+            );
+
+            return ['success' => false, 'error' => 'Failed to fetch OSINT data'];
         }
     }
 

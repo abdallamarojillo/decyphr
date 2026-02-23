@@ -9,6 +9,7 @@ use GuzzleHttp\Promise;
 use app\models\Log;
 use app\models\LogType;
 use app\models\OsintPost;
+use app\models\OsintAiAnalysis;
 
 //this component analyses twitter(x), facebook and tiktok posts for analysis.
 
@@ -26,8 +27,30 @@ class GlobalOSINTAnalyzer extends Component
         $this->aiKey = Yii::$app->params['openaiApiKey'] ?? '';
     }
 
+    private function saveAiAnalysis($requestId, $keyword, array $aiAnalysis)
+{
+    $model = new OsintAiAnalysis();
+
+    $model->request_id = $requestId;
+    $model->keyword = $keyword;
+    $model->summary = $aiAnalysis['threat_summary'] ?? '';
+    $model->numerical_score = $aiAnalysis['numerical_score'] ?? 0;
+    $model->report = json_encode($aiAnalysis, JSON_UNESCAPED_UNICODE);
+    $model->analyzed_at = date('Y-m-d H:i:s');
+
+    if (!$model->save()) {
+        Log::log(
+            'OSINT AI Analysis Save Failed',
+            'Failed saving AI analysis',
+            LogType::ERROR,
+            $model->errors
+        );
+    }
+}
+
 public function fetchGlobalOSINTData($keyword)
-    {
+{
+    $request_id = uniqid();
         if (empty($this->apiKey)) return ['error' => 'API Key missing'];
 
         // ENHANCEMENT: Targeted Query Construction
@@ -73,12 +96,14 @@ public function fetchGlobalOSINTData($keyword)
         ];
 
         $aiAnalysis = $this->getAiIntelligence($keyword, $rawPlatforms);
+        $this->saveAiAnalysis($request_id, $keyword, $aiAnalysis);
 
 
         // Persist posts to DB
         foreach ($rawPlatforms as $platformName => $platformData) {
             foreach ($platformData['data'] as $post) {
                 $osintPost = new OsintPost();
+                $osintPost->request_id = $request_id;
                 $osintPost->keyword = $keyword;
                 $osintPost->platform = $platformName;
                 $osintPost->text = $post['text'] ?? '';
@@ -90,8 +115,8 @@ public function fetchGlobalOSINTData($keyword)
                 $osintPost->video_url = $post['video_url'] ?? null;
                 $osintPost->cover = $post['cover'] ?? null;
                 $osintPost->engagement = json_encode($post['engagement'] ?? []);
-                $osintPost->ai_report = json_encode($aiAnalysis ?? []);
-                $osintPost->threat_score = $aiAnalysis['numerical_score'] ?? 0;
+                $osintPost->ai_report = json_encode($aiAnalysis ?? []); //to remove
+                $osintPost->threat_score = $aiAnalysis['numerical_score'] ?? 0; //to remove
                 $osintPost->save(false);
             }
         }
@@ -106,83 +131,141 @@ public function fetchGlobalOSINTData($keyword)
         ];
     }
 
-    private function getAiIntelligence($keyword, $data)
-    {
-        if (empty($this->aiKey)) return ['summary' => 'AI Key missing.', 'numerical_score' => 0];
+private function getAiIntelligence($keyword, $data)
+{
+    if (empty($this->aiKey)) {
+        return [
+            'threat_summary' => 'AI Key missing.',
+            'decoded_language' => [],
+            'dog_whistles' => [],
+            'localized_risks' => [],
+            'location_suggestions' => [],
+            'numerical_score' => 0
+        ];
+    }
 
-        $contentSummary = "";
-        foreach ($data as $name => $platformResult) {
-            foreach (array_slice($platformResult['data'] ?? [], 0, 8) as $item) {
-                $contentSummary .= sprintf(
-                    "[%s] %s (@%s) in %s: %s\n",
-                    strtoupper($name), $item['created_at'], $item['author'], $item['location'], $item['text']
+    // 1️⃣ Summarize social media content
+    $contentSummary = "";
+    foreach ($data as $platform => $platformResult) {
+        foreach (array_slice($platformResult['data'] ?? [], 0, 8) as $item) {
+            $contentSummary .= sprintf(
+                "[%s] %s (@%s) in %s: %s\n",
+                strtoupper($platform),
+                $item['created_at'] ?? 'N/A',
+                $item['author'] ?? 'N/A',
+                $item['location'] ?? 'Unknown',
+                $item['text'] ?? ''
+            );
+        }
+    }
+
+    // 2️⃣ Construct strict prompt with schema instructions
+    $prompt = <<<PROMPT
+### ROLE ###
+You are a Senior Intelligence Officer for the Kenyan National Intelligence Service,
+with expertise in Kenyan socio-political dynamics, street intelligence, and Sheng linguistics.
+
+### TASK ###
+Analyze the following content:
+$contentSummary
+
+### OUTPUT (STRICT JSON SCHEMA) ###
+Return ONLY valid JSON with EXACT keys and types:
+- threat_summary (string)
+- decoded_language (array of {original_term, language, decoded_meaning, contextual_explanation})
+- dog_whistles (array of {phrase, implied_signal, threat_type, confidence})
+- localized_risks (array of {risk_description, location, severity})
+- location_suggestions (array of {location_name, reason})
+- numerical_score (number)
+
+If no data exists for a section, return an EMPTY ARRAY, not a string.
+PROMPT;
+
+    try {
+        $response = $this->client->post('https://api.openai.com/v1/chat/completions', [
+            'headers' => [
+                'Authorization' => 'Bearer ' . $this->aiKey,
+                'Content-Type' => 'application/json'
+            ],
+            'json' => [
+                'model' => 'gpt-4o-mini',
+                'messages' => [['role'=>'user','content'=>$prompt]],
+                'max_tokens' => 1000
+            ]
+        ]);
+
+        $body = json_decode($response->getBody()->getContents(), true);
+        $rawContent = $body['choices'][0]['message']['content'] ?? '{}';
+
+        // 3️⃣ Extract first JSON object robustly
+        if (preg_match('/\{.*\}/s', $rawContent, $matches)) {
+            $aiData = json_decode($matches[0], true);
+        } else {
+            $aiData = [];
+        }
+
+            Log::log(
+                'OSINT AI Analysis complete',
+                'the AI analysis for the prompt is complete - '.$prompt,
+                LogType::API,
+                $aiData ?? NULL
+            );
+
+        // 4️⃣ Auto-repair and normalize keys
+        $standard = [
+            'threat_summary' => '',
+            'decoded_language' => [],
+            'dog_whistles' => [],
+            'localized_risks' => [],
+            'location_suggestions' => [],
+            'numerical_score' => 0
+        ];
+
+        if (!is_array($aiData)) {
+            $aiData = [];
+        }
+
+        foreach ($standard as $key => $default) {
+            if (!isset($aiData[$key]) || ($key !== 'numerical_score' && !is_array($aiData[$key]))) {
+                $aiData[$key] = $default;
+            }
+            if ($key === 'numerical_score' && !is_numeric($aiData[$key])) {
+                $aiData[$key] = 0;
+            }
+        }
+
+        // 5️⃣ Optional: log any schema violation for monitoring
+        foreach (['decoded_language','dog_whistles','localized_risks','location_suggestions'] as $key) {
+            if (!is_array($aiData[$key])) {
+                Log::log(
+                    'AI Schema Violation',
+                    "$key returned as non-array",
+                    LogType::WARNING,
+                    $aiData
                 );
             }
         }
 
-        $prompt = "### ROLE ###
-        You are a Senior Intelligence Officer for the Kenyan National Intelligence Service,
-        with deep expertise in:
-        - Kenyan socio-political dynamics,
-        - Street-level intelligence,
-        - Kenyan Sheng (urban slang) including coded speech, dog-whistles, and evolving youth dialects.
+        return $aiData;
 
-        You think like a field analyst and a Sheng linguist combined.
+    } catch (\Exception $e) {
+        Log::log(
+            'AI Analysis Failed',
+            'Error: ' . $e->getMessage() . ' | Prompt: ' . $prompt,
+            LogType::ERROR,
+            $data
+        );
 
-        ### KENYAN LOCAL CONTEXT ###
-
-        ### TASK ###
-        Analyze the provided content and:
-
-        1. Summarize the threat as it specifically affects Kenyan national interest.
-        2. Detect and decode any Sheng, street slang, or coded language.
-        3. Identify Sheng dog-whistles, euphemisms, or indirect references that may signal:
-        - Violence
-        - Radicalization
-        - Crime
-        - Civil unrest
-        - Hate speech
-        - Recruitment or mobilization
-        4. Translate Sheng terms into clear English and explain their hidden or cultural meaning.
-        5. Assess localized risks in a Kenyan context (e.g. estates, counties, youth groups, matatu culture, online Kenyan communities).
-        6. Suggest the town/county/village of location in that message, if the messages suggests a place
-
-        ### OUTPUT ###
-        Return ONLY valid JSON
-        ";
-
-        try {
-            $response = $this->client->post('https://api.openai.com/v1/chat/completions', [
-                'headers' => ['Authorization' => 'Bearer ' . $this->aiKey, 'Content-Type' => 'application/json'],
-                'json' => [
-                    'model' => 'gpt-4o-mini',
-                    'messages' => [['role' => 'user', 'content' => $prompt]],
-                    'response_format' => ['type' => 'json_object']
-                ]
-            ]);
-            $body = json_decode($response->getBody()->getContents(), true);
-
-            Log::log(
-                'Sent OSINT for AIAnalysis',
-                'Sent OSINT for AIAnalysis with the prompt - '.$prompt,
-                LogType::API,
-                $prompt
-            );
-
-            return json_decode($body['choices'][0]['message']['content'], true);
-        } catch (\Exception $e) {
-
-            Log::log(
-                'AI Analysis Failed',
-                'AI Error - '.$prompt,
-                LogType::ERROR,
-                $prompt
-            );
-
-            return ['summary' => 'AI Error', 'numerical_score' => 0];
-        }
+        return [
+            'threat_summary' => 'AI Error',
+            'decoded_language' => [],
+            'dog_whistles' => [],
+            'localized_risks' => [],
+            'location_suggestions' => [],
+            'numerical_score' => 0
+        ];
     }
-
+}
     private function parseXResponse($res)
     {
         if ($res['state'] !== 'fulfilled') {

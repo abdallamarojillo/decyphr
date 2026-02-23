@@ -13,7 +13,7 @@ class OsintAiAnalysis extends ActiveRecord
     public function rules()
     {
         return [
-            [['keyword', 'summary', 'numerical_score'], 'required'],
+            [['keyword','request_id'], 'required'],
             [['report'], 'safe'], // JSON full AI output
             [['analyzed_at'], 'safe'],
         ];

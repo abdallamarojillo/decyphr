@@ -23,7 +23,7 @@ $this->title = 'Dashboard';
 
     <!-- Intelligence Pulse Widgets -->
     <div class="row mb-4">
-        <div class="col-xl-3 col-md-6 mb-4">
+        <div class="col-xl-4 col-md-6 mb-4">
             <div class="card border-left-primary shadow h-100 py-2">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
@@ -39,7 +39,7 @@ $this->title = 'Dashboard';
             </div>
         </div>
 
-        <div class="col-xl-3 col-md-6 mb-4">
+        <div class="col-xl-4 col-md-6 mb-4">
             <div class="card border-left-danger shadow h-100 py-2">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
@@ -55,7 +55,7 @@ $this->title = 'Dashboard';
             </div>
         </div>
 
-        <div class="col-xl-3 col-md-6 mb-4">
+        <div class="col-xl-4 col-md-6 mb-4">
             <div class="card border-left-success shadow h-100 py-2">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
@@ -80,26 +80,11 @@ $this->title = 'Dashboard';
             </div>
         </div>
 
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-info shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Active Entities</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800"><?= $stats['total_entities'] ?></div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="bi bi-people fs-2 text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
 
     <div class="row">
         <!-- Recent Intercepts -->
-        <div class="col-lg-8">
+        <div class="col-lg-12">
             <div class="card shadow mb-4">
                 <div class="card-header py-3 d-flex justify-content-between align-items-center">
                     <h6 class="m-0 font-weight-bold text-primary">Recent Intercepts</h6>
@@ -145,46 +130,6 @@ $this->title = 'Dashboard';
                                 <?php endforeach; ?>
                             </tbody>
                         </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- High Risk Entities -->
-        <div class="col-lg-4">
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-danger">High Risk Entities</h6>
-                </div>
-                <div class="card-body">
-                    <?php foreach ($highRiskEntities as $entity): ?>
-                    <div class="mb-3">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <span class="font-weight-bold"><?= Html::encode($entity->name ?: $entity->entity_code) ?></span>
-                            <span class="badge bg-danger"><?= $entity->risk_score ?></span>
-                        </div>
-                        <div class="progress" style="height: 5px;">
-                            <div class="progress-bar bg-danger" role="progressbar" style="width: <?= $entity->risk_score ?>%"></div>
-                        </div>
-                    </div>
-                    <?php endforeach; ?>
-                    <hr>
-                    <div class="text-center">
-                        <a href="<?= Url::to(['entity/index']) ?>" class="small font-weight-bold text-primary">View All Entities</a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Quick Actions -->
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Quick Actions</h6>
-                </div>
-                <div class="card-body">
-                    <div class="d-grid gap-2">
-                        <a href="<?= Url::to(['message/upload']) ?>" class="btn btn-primary">
-                            <i class="bi bi-upload me-2"></i>New Intercept
-                        </a>
                     </div>
                 </div>
             </div>
