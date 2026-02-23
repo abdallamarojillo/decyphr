@@ -7,6 +7,8 @@ use yii\web\Controller;
 use yii\web\Response;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
+use app\models\Log;
+use app\models\LogType;
 
 /**
  * Global OSINT Threat Intelligence Controller
@@ -59,6 +61,15 @@ class OsintController extends Controller
         try {
            $analyzer = Yii::$app->globalOSINTAnalyzer;
             $data = $analyzer->fetchGlobalOSINTData($keyword);
+
+            // Log the event
+            Log::log(
+                'Sent OSINT for Analysis',
+                'Sent OSINT for Analysis with the keyword - '.$keyword,
+                LogType::API,
+                $data ?? NULL
+            );
+
             return ['success' => true, 'data' => $data];
         } catch (\Exception $e) {
             return ['success' => false, 'error' => $e->getMessage()];

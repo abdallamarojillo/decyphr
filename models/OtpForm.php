@@ -36,6 +36,14 @@ class OtpForm extends Model
         Yii::$app->user->login($user, 3600 * 24 * 30);
         Yii::$app->session->remove('mfa_user_id');
 
+        //Log the event
+        Log::log(
+            'USER_LOGIN_SUCCESS',
+            'User logged in successfully',
+            LogType::AUTH,
+            ['username' => $user->username]
+        );
+
         return true;
     }
 }

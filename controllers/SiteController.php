@@ -9,6 +9,8 @@ use yii\filters\VerbFilter;
 use app\models\LoginForm;
 use app\models\OtpForm;
 use app\models\User;
+use app\models\Log;
+use app\models\LogType;
 
 class SiteController extends Controller
 {
@@ -109,7 +111,16 @@ class SiteController extends Controller
      */
     public function actionLogout()
     {
+        $username = Yii::$app->user->identity->username; // store username before logout
         Yii::$app->user->logout();
+
+        // Log the event
+        Log::log(
+            'USER_LOGOUT_SUCCESS',
+            'User logged out successfully',
+            LogType::AUTH,
+            ['username' => $username]
+        );
 
         return $this->goHome();
     }

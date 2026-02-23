@@ -6,6 +6,8 @@ use Yii;
 use yii\base\Component;
 use GuzzleHttp\Client;
 use GuzzleHttp\Promise;
+use app\models\Log;
+use app\models\LogType;
 
 //this component analyses twitter(x), facebook and tiktok posts for analysis.
 //TO DO: Check tiktok, facebook api responses via postman
@@ -135,8 +137,24 @@ public function fetchGlobalOSINTData($keyword)
                 ]
             ]);
             $body = json_decode($response->getBody()->getContents(), true);
+
+            Log::log(
+                'Sent OSINT for AIAnalysis',
+                'Sent OSINT for AIAnalysis with the prompt - '.$prompt,
+                LogType::API,
+                $prompt
+            );
+
             return json_decode($body['choices'][0]['message']['content'], true);
         } catch (\Exception $e) {
+
+            Log::log(
+                'AI Analysis Failed',
+                'AI Error - '.$prompt,
+                LogType::ERROR,
+                $prompt
+            );
+
             return ['summary' => 'AI Error', 'numerical_score' => 0];
         }
     }

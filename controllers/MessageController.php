@@ -12,6 +12,8 @@ use yii\filters\AccessControl;
 use yii\web\UploadedFile;
 use yii\web\Response;
 use yii\data\ActiveDataProvider;
+use app\models\Log;
+use app\models\LogType;
 
 class MessageController extends Controller
 {
@@ -80,6 +82,15 @@ class MessageController extends Controller
         
         if (Yii::$app->request->isAjax) {
             Yii::$app->response->format = Response::FORMAT_JSON;
+
+            // Log the event
+            Log::log(
+                'Message Analysis Done',
+                'Uploaded Message successfully analyzed',
+                LogType::API,
+                [$message]
+            );
+
             return [
                 'success' => true,
                 'analysis' => $analysisResult,
@@ -99,6 +110,15 @@ class MessageController extends Controller
         if ($filename) {
             $path = Yii::getAlias('@webroot/uploads/dossiers/') . $filename;
             if (file_exists($path)) {
+
+                // Log the event
+                Log::log(
+                    'Generated a Dossier Report',
+                    'Generated a report',
+                    LogType::INFO,
+                    $filename
+                );
+
                 return Yii::$app->response->sendFile($path, $filename);
             }
         }
@@ -145,7 +165,15 @@ class MessageController extends Controller
             }
 
             if ($model->save()) {
-                AuditLog::log('message_uploaded', 'Message', $model->id);
+
+                 // Log the event
+                Log::log(
+                    'Uploaded a message',
+                    'Uploaded a message for analysis',
+                    LogType::INFO,
+                    $model
+                );
+
                 $analysisResult = Yii::$app->cryptoAnalyzer->analyzeMessage($model->id);
                 
                 return [
@@ -173,6 +201,15 @@ class MessageController extends Controller
 
         if (Yii::$app->request->isAjax) {
             Yii::$app->response->format = Response::FORMAT_JSON;
+
+                // Log the event
+                Log::log(
+                    'deleted a message',
+                    'deleted an analyzed message',
+                    LogType::RECORD_CHANGE,
+                    $model ?? NULL
+                );
+
             return ['success' => true];
         }
 
