@@ -20,6 +20,7 @@ $this->beginPage();
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/2.3.7/css/dataTables.dataTables.css" />
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/css/custom.css">
 
@@ -55,6 +56,11 @@ $this->beginPage();
                     <li class="nav-item" title="Analyse Social Media Posts">
                         <a class="nav-link" href="<?= Url::to(['osint/index']) ?>">
                             <i class="fab fa-connectdevelop"></i> OSINT
+                        </a>
+                    </li>
+                    <li class="nav-item" title="System Logs">
+                        <a class="nav-link" href="<?= Url::to(['site/logs']) ?>">
+                            <i class="fa fa-history"></i> Logs
                         </a>
                     </li>
                     <?php endif; ?>
@@ -115,37 +121,9 @@ $this->beginPage();
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.umd.js"></script>
-    <!-- Vis.js -->
-    <script src="https://unpkg.com/vis-network@9.1.6/dist/vis-network.min.js"></script>
-    <link href="https://unpkg.com/vis-network@9.1.6/dist/dist/vis-network.min.css" rel="stylesheet">
+    <script src="https://cdn.datatables.net/2.3.7/js/dataTables.js"></script>
     <!-- Custom JS -->
     <script src="/js/cryptanalysis.js"></script>
-
-    <script>
-    // Tactical Dark Mode Toggle
-    const toggleBtn = document.getElementById('dark-mode-toggle');
-    const body = document.body;
-
-    if (localStorage.getItem('dark-mode') === 'enabled') {
-        body.classList.add('dark-mode');
-        if (toggleBtn) toggleBtn.innerHTML = '<i class="bi bi-sun me-1"></i> Light Mode';
-    }
-
-    if (toggleBtn) {
-        toggleBtn.addEventListener('click', () => {
-            body.classList.toggle('dark-mode');
-            if (body.classList.contains('dark-mode')) {
-                localStorage.setItem('dark-mode', 'enabled');
-                toggleBtn.innerHTML = '<i class="bi bi-sun me-1"></i> Light Mode';
-            } else {
-                localStorage.setItem('dark-mode', 'disabled');
-                toggleBtn.innerHTML = '<i class="bi bi-moon-stars me-1"></i> Tactical Mode';
-            }
-        });
-    }
-    </script>
 
     <?php $this->endBody() ?>
 </body>

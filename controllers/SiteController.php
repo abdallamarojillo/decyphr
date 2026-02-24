@@ -11,6 +11,7 @@ use app\models\OtpForm;
 use app\models\User;
 use app\models\Log;
 use app\models\LogType;
+use yii\data\ActiveDataProvider;
 
 class SiteController extends Controller
 {
@@ -135,4 +136,34 @@ class SiteController extends Controller
         }
         return $this->redirect(['dashboard/index']);
     }
+
+    /** Only Authenticated user should access the logs **/
+    public function actionLogs()
+    {
+        $dataProvider = new ActiveDataProvider([
+            'query' => Log::find()->orderBy(['id' => SORT_DESC]),
+            'pagination' => [
+                'pageSize' => 10, 
+            ],
+        ]);
+
+        return $this->render('logs', [
+            'dataProvider' => $dataProvider,
+        ]);
+    }
+
+    public function actionLogView($id)
+    {
+        $log = Log::findOne($id);
+
+        if (!$log) {
+            throw new \yii\web\NotFoundHttpException('Log not found');
+        }
+
+        return $this->render('log-view', [
+            'log' => $log,
+        ]);
+    }
+
+
 }
