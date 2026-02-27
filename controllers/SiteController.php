@@ -11,6 +11,7 @@ use app\models\OtpForm;
 use app\models\User;
 use app\models\Log;
 use app\models\LogType;
+use app\helpers\GlobalHelper;
 use yii\data\ActiveDataProvider;
 
 class SiteController extends Controller
@@ -89,15 +90,29 @@ class SiteController extends Controller
 
         $user = User::findOne($userId);
         $otp = $user->generateOtp();
+        $otp_message = "Your OTP is: {$otp}";
+        // Send OTP to email
+        try {
+            Yii::$app->mailer->compose()
+                ->setTo($user->email)
+                ->setSubject('Your Login OTP')
+                ->setTextBody($otp_message)
+                ->send();
+        } catch (\Throwable $e) {
+            Yii::error(
+                'OTP Email failed: ' . $e->getMessage(),
+                __METHOD__
+            );
+        }
 
-        Yii::$app->mailer->compose()
-            ->setTo($user->email)
-            ->setSubject('Your New OTP')
-            ->setTextBody("Your OTP is: {$otp}")
-            ->send();
-
-        if (!empty($user->phone)) {
-            Yii::$app->sms->send($user->phone, "Your OTP is {$otp}");
+        //send otp to sms
+        try {
+            GlobalHelper::SendSMS($user->phone, $otp_message);
+        } catch (\Throwable $e) {
+            Yii::error(
+                'OTP SMS failed: ' . $e->getMessage(),
+                __METHOD__
+            );
         }
 
         Yii::$app->session->setFlash('success', 'A new OTP has been sent.');

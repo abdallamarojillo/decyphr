@@ -2,6 +2,7 @@
 
 namespace app\models;
 
+use app\helpers\GlobalHelper;
 use Yii;
 use yii\base\Model;
 
@@ -59,14 +60,31 @@ class LoginForm extends Model
 
             // Generate OTP
             $otp = $user->GenerateOtp();
+            $otp_message = "Your OTP is: {$otp}";
 
-            // Send OTP
+        // Send OTP to email
+        try {
             Yii::$app->mailer->compose()
                 ->setTo($user->email)
                 ->setSubject('Your Login OTP')
-                ->setTextBody("Your OTP is: {$otp}")
+                ->setTextBody($otp_message)
                 ->send();
-  
+        } catch (\Throwable $e) {
+            Yii::error(
+                'OTP Email failed: ' . $e->getMessage(),
+                __METHOD__
+            );
+        }
+
+        // Send OTP to phone
+        try {
+            GlobalHelper::SendSMS($user->phone, $otp_message);
+        } catch (\Throwable $e) {
+            Yii::error(
+                'OTP SMS failed: ' . $e->getMessage(),
+                __METHOD__
+            );
+        }
 
             Yii::$app->session->set('mfa_user_id', $user->id);
 
