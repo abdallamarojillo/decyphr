@@ -155,12 +155,25 @@ class SiteController extends Controller
     /** Only Authenticated user should access the logs **/
     public function actionLogs()
     {
-        $dataProvider = new ActiveDataProvider([
-            'query' => Log::find()->orderBy(['id' => SORT_DESC]),
-            'pagination' => [
-                'pageSize' => 10, 
-            ],
-        ]);
+
+        if(GlobalHelper::CurrentUser('role') == 'admin')
+        {
+            $dataProvider = new ActiveDataProvider([
+                'query' => Log::find()->orderBy(['id' => SORT_DESC]),
+                'pagination' => [
+                    'pageSize' => 10, 
+                ],
+            ]);
+        }
+        elseif(GlobalHelper::CurrentUser('role') == 'user')
+        {
+            $dataProvider = new ActiveDataProvider([
+                'query' => Log::find()->where(['user_id' => GlobalHelper::CurrentUser('id')])->orderBy(['id' => SORT_DESC]),
+                'pagination' => [
+                    'pageSize' => 10, 
+                ],
+            ]);
+        }
 
         return $this->render('logs', [
             'dataProvider' => $dataProvider,

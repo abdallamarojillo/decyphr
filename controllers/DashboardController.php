@@ -9,6 +9,7 @@ use app\models\Message;
 use app\models\Entity;
 use app\models\AnalysisResult;
 use app\models\CommunicationLink;
+use app\helpers\GlobalHelper;
 
 class DashboardController extends Controller
 {
@@ -30,41 +31,85 @@ class DashboardController extends Controller
     public function actionIndex()
     {
         // Get statistics
-        $stats = [
-            'total_messages' => Message::find()->count(),
-            'pending_messages' => Message::find()->where(['status' => Message::STATUS_PENDING])->count(),
-            'analyzing_messages' => Message::find()->where(['status' => Message::STATUS_ANALYZING])->count(),
-            'decrypted_messages' => Message::find()->where(['status' => Message::STATUS_DECRYPTED])->count(),
-            'failed_messages' => Message::find()->where(['status' => Message::STATUS_FAILED])->count(),
-            'total_entities' => Entity::find()->count(),
-            'high_risk_entities' => Entity::find()->where(['>=', 'risk_score', 75])->count(),
-            'total_links' => CommunicationLink::find()->count(),
-            'total_analyses' => AnalysisResult::find()->count(),
-            'critical_threats' => AnalysisResult::find()->where(['>=', 'confidence_score', 80])->count(),
-            'decryption_rate' => Message::find()->count() > 0 
-                ? round((Message::find()->where(['not', ['decrypted_content' => null]])->count() / Message::find()->count()) * 100, 1) 
-                : 0,
-        ];
 
-        // Get recent messages
-        $recentMessages = Message::find()
-            ->orderBy(['created_at' => SORT_DESC])
-            ->limit(10)
-            ->all();
+        if(GlobalHelper::CurrentUser('role') == 'admin')
+        {
+            $stats = [
+                'total_messages' => Message::find()->count(),
+                'pending_messages' => Message::find()->where(['status' => Message::STATUS_PENDING])->count(),
+                'analyzing_messages' => Message::find()->where(['status' => Message::STATUS_ANALYZING])->count(),
+                'decrypted_messages' => Message::find()->where(['status' => Message::STATUS_DECRYPTED])->count(),
+                'failed_messages' => Message::find()->where(['status' => Message::STATUS_FAILED])->count(),
+                'total_entities' => Entity::find()->count(),
+                'high_risk_entities' => Entity::find()->where(['>=', 'risk_score', 75])->count(),
+                'total_links' => CommunicationLink::find()->count(),
+                'total_analyses' => AnalysisResult::find()->count(),
+                'critical_threats' => AnalysisResult::find()->where(['>=', 'confidence_score', 80])->count(),
+                'decryption_rate' => Message::find()->count() > 0 
+                    ? round((Message::find()->where(['not', ['decrypted_content' => null]])->count() / Message::find()->count()) * 100, 1) 
+                    : 0,
+            ];
 
-        // Get high-risk entities
-        $highRiskEntities = Entity::find()
-            ->where(['>=', 'risk_score', 75])
-            ->orderBy(['risk_score' => SORT_DESC])
-            ->limit(10)
-            ->all();
+            // Get recent messages
+            $recentMessages = Message::find()
+                ->orderBy(['created_at' => SORT_DESC])
+                ->limit(10)
+                ->all();
 
-        // Get recent analysis results
-        $recentAnalyses = AnalysisResult::find()
-            ->with('message')
-            ->orderBy(['created_at' => SORT_DESC])
-            ->limit(10)
-            ->all();
+            // Get high-risk entities
+            $highRiskEntities = Entity::find()
+                ->where(['>=', 'risk_score', 75])
+                ->orderBy(['risk_score' => SORT_DESC])
+                ->limit(10)
+                ->all();
+
+            // Get recent analysis results
+            $recentAnalyses = AnalysisResult::find()
+                ->with('message')
+                ->orderBy(['created_at' => SORT_DESC])
+                ->limit(10)
+                ->all();
+        }
+        elseif(GlobalHelper::CurrentUser('role') == 'user')
+        {
+            $stats = [
+                'total_messages' => Message::find()->where(['created_by' => GlobalHelper::CurrentUser('id')])->count(),
+                'pending_messages' => Message::find()->where(['status' => Message::STATUS_PENDING])->count(),
+                'analyzing_messages' => Message::find()->where(['status' => Message::STATUS_ANALYZING])->count(),
+                'decrypted_messages' => Message::find()->where(['status' => Message::STATUS_DECRYPTED])->count(),
+                'failed_messages' => Message::find()->where(['status' => Message::STATUS_FAILED])->count(),
+                'total_entities' => Entity::find()->count(),
+                'high_risk_entities' => Entity::find()->where(['>=', 'risk_score', 75])->count(),
+                'total_links' => CommunicationLink::find()->count(),
+                'total_analyses' => AnalysisResult::find()->count(),
+                'critical_threats' => AnalysisResult::find()->where(['>=', 'confidence_score', 80,])->andWhere(['created_by' => GlobalHelper::CurrentUser('id')])->count(),
+                'decryption_rate' => Message::find()->count() > 0 
+                    ? round((Message::find()->where(['not', ['decrypted_content' => null]])->andWhere(['created_by' => GlobalHelper::CurrentUser('id')])->count() / Message::find()->count()) * 100, 1) 
+                    : 0,
+            ];
+
+            // Get recent messages
+            $recentMessages = Message::find()
+                ->where(['created_by' => GlobalHelper::CurrentUser('id')])
+                ->orderBy(['created_at' => SORT_DESC])
+                ->limit(10)
+                ->all();
+
+            // Get high-risk entities
+            $highRiskEntities = Entity::find()
+                ->where(['>=', 'risk_score', 75])
+                ->orderBy(['risk_score' => SORT_DESC])
+                ->limit(10)
+                ->all();
+
+            // Get recent analysis results
+            $recentAnalyses = AnalysisResult::find()
+                ->with('message')
+                ->orderBy(['created_at' => SORT_DESC])
+                ->limit(10)
+                ->all();
+        }
+
 
         // Get message status distribution
         $statusDistribution = [

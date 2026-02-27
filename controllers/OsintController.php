@@ -2,6 +2,7 @@
 
 namespace app\controllers;
 
+use app\helpers\GlobalHelper;
 use Yii;
 use yii\web\Controller;
 use yii\web\Response;
@@ -44,8 +45,17 @@ class OsintController extends Controller
      */
     public function actionIndex()
     {
-        $osintaidata = OsintAiAnalysis::find()->orderBy(['id' => SORT_DESC])->all();
-        $relatedPosts = OsintPost::find()->all(); // Fetch all posts to filter in the view
+       if(GlobalHelper::CurrentUser('role') == 'admin')
+        {
+            $osintaidata = OsintAiAnalysis::find()->orderBy(['id' => SORT_DESC])->all();
+            $relatedPosts = OsintPost::find()->all(); // Fetch all posts to filter in the view
+        }
+        elseif(GlobalHelper::CurrentUser('role') == 'user')
+        {
+            $osintaidata = OsintAiAnalysis::find()->where(['created_by' => GlobalHelper::CurrentUser('id')])->orderBy(['id' => SORT_DESC])->all();
+            $relatedPosts = OsintPost::find()->where(['created_by' => GlobalHelper::CurrentUser('id')])->all(); // Fetch all posts to filter in the view
+        }
+
 
         return $this->render('index', [
             'osintaidata' => $osintaidata,
@@ -89,7 +99,7 @@ class OsintController extends Controller
                 $platforms[$key] = $platformData['platforms'][$key] ?? ['data'=>[]];
             }
 
-            // 4️⃣ Log the event
+            // 4️. Log the event
             Log::log(
                 'Sent OSINT for Analysis',
                 'Sent OSINT for Analysis with the keyword - '.$keyword,

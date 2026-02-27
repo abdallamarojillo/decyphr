@@ -2,6 +2,17 @@
 
 use yii\helpers\Html;
 use yii\helpers\Url;
+use app\helpers\GlobalHelper;
+
+//if a user is not an admin and is not the one that created a message, then prevent the user from accessing the page
+if(GlobalHelper::CurrentUser('role') != 'admin')
+{
+    if(GlobalHelper::CurrentUser('id') != $message->created_by)
+    {
+        exit('403 - You are forbidden from accessing this resource');
+    }
+}
+
 
 $this->title = 'Intelligence Report #' . $message->id;
 ?>

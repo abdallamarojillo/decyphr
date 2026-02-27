@@ -67,4 +67,23 @@ class GlobalHelper
 
         return $response;
     }
+
+    public static function CurrentUser($key = null)
+    {
+        if (Yii::$app->user->isGuest) {
+            return null;
+        }
+
+        $user = Yii::$app->user->identity;
+
+        $data = [
+            'id'       => $user->id,
+            'username' => $user->username,
+            'email'    => $user->email,
+            'role'     => $user->role ?? 'na',
+        ];
+
+        // Return full array or a single value
+        return $key === null ? $data : ($data[$key] ?? null);
+    }
 }

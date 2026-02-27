@@ -10,7 +10,7 @@ use app\models\Log;
 use app\models\LogType;
 use app\models\OsintPost;
 use app\models\OsintAiAnalysis;
-
+use app\helpers\GlobalHelper;
 //this component analyses twitter(x), facebook and tiktok posts for analysis.
 
 class GlobalOSINTAnalyzer extends Component
@@ -37,6 +37,7 @@ class GlobalOSINTAnalyzer extends Component
     $model->numerical_score = $aiAnalysis['numerical_score'] ?? 0;
     $model->report = json_encode($aiAnalysis, JSON_UNESCAPED_UNICODE);
     $model->analyzed_at = date('Y-m-d H:i:s');
+    $model->created_by = GlobalHelper::CurrentUser('id');
 
     if (!$model->save()) {
         Log::log(
@@ -117,6 +118,7 @@ public function fetchGlobalOSINTData($keyword)
                 $osintPost->engagement = json_encode($post['engagement'] ?? []);
                 $osintPost->ai_report = json_encode($aiAnalysis ?? []); //to remove
                 $osintPost->threat_score = $aiAnalysis['numerical_score'] ?? 0; //to remove
+                $osintPost->created_by = GlobalHelper::CurrentUser('id');
                 $osintPost->save(false);
             }
         }

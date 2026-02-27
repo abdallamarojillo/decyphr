@@ -14,6 +14,7 @@ use yii\web\Response;
 use yii\data\ActiveDataProvider;
 use app\models\Log;
 use app\models\LogType;
+use app\helpers\GlobalHelper;
 
 class MessageController extends Controller
 {
@@ -42,12 +43,27 @@ class MessageController extends Controller
 
     public function actionIndex()
     {
-        $dataProvider = new ActiveDataProvider([
-            'query' => Message::find()->orderBy(['created_at' => SORT_DESC]),
-            'pagination' => [
-                'pageSize' => 20,
-            ],
-        ]);
+
+        if(GlobalHelper::CurrentUser('role') == 'admin')
+        {
+            $dataProvider = new ActiveDataProvider([
+                'query' => Message::find()->orderBy(['created_at' => SORT_DESC]),
+                'pagination' => [
+                    'pageSize' => 20,
+                ],
+            ]);
+        }
+        elseif(GlobalHelper::CurrentUser('role') == 'user')
+        {
+            $dataProvider = new ActiveDataProvider([
+                'query' => Message::find()->where(['created_by' => GlobalHelper::CurrentUser('id')])->orderBy(['created_at' => SORT_DESC]),
+                'pagination' => [
+                    'pageSize' => 20,
+                ],
+            ]);
+        }
+
+
 
         return $this->render('index', [
             'dataProvider' => $dataProvider,
@@ -139,6 +155,7 @@ class MessageController extends Controller
         $model = new Message();
         $model->status = Message::STATUS_PENDING;
         $model->intercepted_at = date('Y-m-d H:i:s');
+        $model->created_by = GlobalHelper::CurrentUser('id');
 
         if (Yii::$app->request->isPost) {
             $model->load(Yii::$app->request->post());

@@ -1,12 +1,23 @@
 <?php
 use yii\helpers\Html;
 use yii\helpers\Json;
+use app\helpers\GlobalHelper;
 
 /** @var app\models\Log $log */
 
 $this->title = 'Log Details #' . $log->id;
 $this->params['breadcrumbs'][] = ['label' => 'System Logs', 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
+
+//if a user is not an admin and is not the one that created a message, then prevent the user from accessing the page
+if(GlobalHelper::CurrentUser('role') != 'admin')
+{
+    if(GlobalHelper::CurrentUser('id') != $log->user_id)
+    {
+        exit('403 - You are forbidden from accessing this resource');
+    }
+}
+
 ?>
 
 <div class="container py-4">
