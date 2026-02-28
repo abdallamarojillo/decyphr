@@ -177,13 +177,13 @@ $this->title = 'OSINT Intelligence Feed';
             </div>
 
             <div class="modal fade" id="modal-<?= $model->request_id ?>" tabindex="-1" aria-hidden="true">
-                <div class="modal-dialog modal-fullscreen modal-fullscreen-sm-down">
+                <div class="modal-dialog modal-xl">
                     <div class="modal-content">
-                        <div class="modal-header bg-dark text-white p-4">
+                        <div class="modal-header p-4">
                             <h5 class="modal-title fw-bold">
                                 <i class="bi bi-database-fill me-2"></i> Evidence Log: <?= Html::encode($model->keyword) ?>
                             </h5>
-                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body bg-light p-5">
                             <div class="container">
