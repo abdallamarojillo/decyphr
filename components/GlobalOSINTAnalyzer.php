@@ -133,141 +133,155 @@ public function fetchGlobalOSINTData($keyword)
         ];
     }
 
-private function getAiIntelligence($keyword, $data)
-{
-    if (empty($this->aiKey)) {
-        return [
-            'threat_summary' => 'AI Key missing.',
-            'decoded_language' => [],
-            'dog_whistles' => [],
-            'localized_risks' => [],
-            'location_suggestions' => [],
-            'numerical_score' => 0
-        ];
-    }
-
-    // 1️⃣ Summarize social media content
-    $contentSummary = "";
-    foreach ($data as $platform => $platformResult) {
-        foreach (array_slice($platformResult['data'] ?? [], 0, 8) as $item) {
-            $contentSummary .= sprintf(
-                "[%s] %s (@%s) in %s: %s\n",
-                strtoupper($platform),
-                $item['created_at'] ?? 'N/A',
-                $item['author'] ?? 'N/A',
-                $item['location'] ?? 'Unknown',
-                $item['text'] ?? ''
-            );
-        }
-    }
-
-    // 2️⃣ Construct strict prompt with schema instructions
-    $prompt = <<<PROMPT
-### ROLE ###
-You are a Senior Intelligence Officer for the Kenyan National Intelligence Service,
-with expertise in Kenyan socio-political dynamics, street intelligence, and Sheng linguistics.
-
-### TASK ###
-Analyze the following content:
-$contentSummary
-
-### OUTPUT (STRICT JSON SCHEMA) ###
-Return ONLY valid JSON with EXACT keys and types:
-- threat_summary (string)
-- decoded_language (array of {original_term, language, decoded_meaning, contextual_explanation})
-- dog_whistles (array of {phrase, implied_signal, threat_type, confidence})
-- localized_risks (array of {risk_description, location, severity})
-- location_suggestions (array of {location_name, reason})
-- numerical_score (number)
-
-If no data exists for a section, return an EMPTY ARRAY, not a string.
-PROMPT;
-
-    try {
-        $response = $this->client->post('https://api.openai.com/v1/chat/completions', [
-            'headers' => [
-                'Authorization' => 'Bearer ' . $this->aiKey,
-                'Content-Type' => 'application/json'
-            ],
-            'json' => [
-                'model' => 'gpt-4o-mini',
-                'messages' => [['role'=>'user','content'=>$prompt]],
-                'max_tokens' => 1000
-            ]
-        ]);
-
-        $body = json_decode($response->getBody()->getContents(), true);
-        $rawContent = $body['choices'][0]['message']['content'] ?? '{}';
-
-        // 3️⃣ Extract first JSON object robustly
-        if (preg_match('/\{.*\}/s', $rawContent, $matches)) {
-            $aiData = json_decode($matches[0], true);
-        } else {
-            $aiData = [];
+    private function getAiIntelligence($keyword, $data)
+    {
+        if (empty($this->aiKey)) {
+            return [
+                'threat_summary' => 'AI Key missing.',
+                'decoded_language' => [],
+                'dog_whistles' => [],
+                'localized_risks' => [],
+                'location_suggestions' => [],
+                'numerical_score' => 0
+            ];
         }
 
-            Log::log(
-                'OSINT AI Analysis complete',
-                'the AI analysis for the prompt is complete - '.$prompt,
-                LogType::API,
-                $aiData ?? NULL
-            );
-
-        // 4️⃣ Auto-repair and normalize keys
-        $standard = [
-            'threat_summary' => '',
-            'decoded_language' => [],
-            'dog_whistles' => [],
-            'localized_risks' => [],
-            'location_suggestions' => [],
-            'numerical_score' => 0
-        ];
-
-        if (!is_array($aiData)) {
-            $aiData = [];
-        }
-
-        foreach ($standard as $key => $default) {
-            if (!isset($aiData[$key]) || ($key !== 'numerical_score' && !is_array($aiData[$key]))) {
-                $aiData[$key] = $default;
-            }
-            if ($key === 'numerical_score' && !is_numeric($aiData[$key])) {
-                $aiData[$key] = 0;
-            }
-        }
-
-        // 5️⃣ Optional: log any schema violation for monitoring
-        foreach (['decoded_language','dog_whistles','localized_risks','location_suggestions'] as $key) {
-            if (!is_array($aiData[$key])) {
-                Log::log(
-                    'AI Schema Violation',
-                    "$key returned as non-array",
-                    LogType::WARNING,
-                    $aiData
+        // 1️. Summarize social media content
+        $contentSummary = "";
+        foreach ($data as $platform => $platformResult) {
+            foreach (array_slice($platformResult['data'] ?? [], 0, 8) as $item) {
+                $contentSummary .= sprintf(
+                    "[%s] %s (@%s) in %s: %s\n",
+                    strtoupper($platform),
+                    $item['created_at'] ?? 'N/A',
+                    $item['author'] ?? 'N/A',
+                    $item['location'] ?? 'Unknown',
+                    $item['text'] ?? ''
                 );
             }
         }
 
-        return $aiData;
+        // 2️. Construct strict prompt with schema instructions
+        $prompt = <<<PROMPT
+    ### ROLE ###
+    You are a Senior Intelligence Officer for the Kenyan National Intelligence Service,
+    with expertise in Kenyan socio-political dynamics, street intelligence, and Sheng linguistics.
 
-    } catch (\Exception $e) {
-        Log::log(
-            'AI Analysis Failed',
-            'Error: ' . $e->getMessage() . ' | Prompt: ' . $prompt,
-            LogType::ERROR,
-            $data
-        );
+    ### TASK ###
+    Analyze the following content:
+    $contentSummary
 
-        return [
-            'threat_summary' => 'AI Error',
-            'decoded_language' => [],
-            'dog_whistles' => [],
-            'localized_risks' => [],
-            'location_suggestions' => [],
-            'numerical_score' => 0
-        ];
+    ### OUTPUT (STRICT JSON SCHEMA) ###
+    Return ONLY valid JSON with EXACT keys and types:
+    - threat_summary (string)
+    - decoded_language (array of {original_term, language, decoded_meaning, contextual_explanation})
+    - dog_whistles (array of {phrase, implied_signal, threat_type, confidence})
+    - localized_risks (array of {risk_description, location, severity})
+    - location_suggestions (array of {location_name, reason})
+    - numerical_score (number)
+
+    If no data exists for a section, return an EMPTY ARRAY, not a string.
+    PROMPT;
+
+        try {
+            $response = $this->client->post('https://api.openai.com/v1/chat/completions', [
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $this->aiKey,
+                    'Content-Type' => 'application/json'
+                ],
+                'json' => [
+                    'model' => 'gpt-4o-mini',
+                    'messages' => [['role'=>'user','content'=>$prompt]],
+                    'max_tokens' => 1000
+                ]
+            ]);
+
+            $body = json_decode($response->getBody()->getContents(), true);
+            $rawContent = $body['choices'][0]['message']['content'] ?? '{}';
+
+            // 3️. Extract first JSON object robustly
+            if (preg_match('/\{.*\}/s', $rawContent, $matches)) {
+                $aiData = json_decode($matches[0], true);
+            } else {
+                $aiData = [];
+            }
+
+                Log::log(
+                    'OSINT AI Analysis complete',
+                    'the AI analysis for the prompt is complete - '.$prompt,
+                    LogType::API,
+                    $aiData ?? NULL
+                );
+
+            // 4️. Auto-repair and normalize keys
+            $standard = [
+                'threat_summary' => '',
+                'decoded_language' => [],
+                'dog_whistles' => [],
+                'localized_risks' => [],
+                'location_suggestions' => [],
+                'numerical_score' => 0
+            ];
+
+            foreach ($standard as $key => $default) {
+
+                if (!array_key_exists($key, $aiData)) {
+                    $aiData[$key] = $default;
+                    continue;
+                }
+
+                switch ($key) {
+                    case 'threat_summary':
+                        if (!is_string($aiData[$key])) {
+                            $aiData[$key] = '';
+                        }
+                        break;
+
+                    case 'numerical_score':
+                        if (!is_numeric($aiData[$key])) {
+                            $aiData[$key] = 0;
+                        }
+                        break;
+
+                    default:
+                        if (!is_array($aiData[$key])) {
+                            $aiData[$key] = [];
+                        }
+                }
+            }
+
+            // 5️. Optional: log any schema violation for monitoring
+            foreach (['decoded_language','dog_whistles','localized_risks','location_suggestions'] as $key) {
+                if (!is_array($aiData[$key])) {
+                    Log::log(
+                        'AI Schema Violation',
+                        "$key returned as non-array",
+                        LogType::WARNING,
+                        $aiData
+                    );
+                }
+            }
+
+            return $aiData;
+
+        } catch (\Exception $e) {
+            Log::log(
+                'AI Analysis Failed',
+                'Error: ' . $e->getMessage() . ' | Prompt: ' . $prompt,
+                LogType::ERROR,
+                $data
+            );
+
+            return [
+                'threat_summary' => 'AI Error',
+                'decoded_language' => [],
+                'dog_whistles' => [],
+                'localized_risks' => [],
+                'location_suggestions' => [],
+                'numerical_score' => 0
+            ];
+        }
     }
-}
     private function parseXResponse($res)
     {
         if ($res['state'] !== 'fulfilled') {

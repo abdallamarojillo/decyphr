@@ -17,4 +17,5 @@ class LogType
     const INFO     = 'INFO';
     const WARNING  = 'WARNING';
     const RECORD_CHANGE     = 'RECORD_CHANGE';
+    const DEBUG = 'DEBUG';
 }
