@@ -216,6 +216,7 @@ $relatedCount = 0;
                                 data-bs-toggle="modal" data-bs-target="#modal-<?= $model->request_id ?>">
                                 View Related Posts <i class="bi bi-arrow-right-short"></i>
                             </button>
+
                         </div>
                     </div>
                 </div>
@@ -237,7 +238,8 @@ $relatedCount = 0;
                                 <div class="col-12">
                                     <h3 class="fw-bold">Related Post Records</h3>
                                     <p class="text-muted">Source data used to generate Intelligence Score:
-                                        <strong></strong></p>
+                                        <strong></strong>
+                                    </p>
                                 </div>
                             </div>
                             <div class="row g-3">

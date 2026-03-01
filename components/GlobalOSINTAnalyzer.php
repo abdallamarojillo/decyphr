@@ -174,6 +174,7 @@ public function fetchGlobalOSINTData($keyword)
     ### OUTPUT (STRICT JSON SCHEMA) ###
     Return ONLY valid JSON with EXACT keys and types:
     - threat_summary (string)
+    - analysis_basis (array of {indicators_detected,evidence_quotes,inference_rules_applied,uncertainty_factors})
     - decoded_language (array of {original_term, language, decoded_meaning, contextual_explanation})
     - dog_whistles (array of {phrase, implied_signal, threat_type, confidence})
     - localized_risks (array of {risk_description, location, severity})
@@ -216,6 +217,7 @@ public function fetchGlobalOSINTData($keyword)
             // 4️. Auto-repair and normalize keys
             $standard = [
                 'threat_summary' => '',
+                'analysis_basis' => [],
                 'decoded_language' => [],
                 'dog_whistles' => [],
                 'localized_risks' => [],
