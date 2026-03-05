@@ -2,8 +2,10 @@
 use yii\helpers\Url;
 use yii\helpers\Html;
 use yii\helpers\Json;
+use yii\bootstrap5\ActiveForm;
 
-$this->title = 'OSINT Intelligence Feed';
+
+$this->title = 'OSINT Intelligence Feed Request ID '.$osintaidata[0]['request_id'];
 $relatedCount = 0;
 ?>
 
@@ -11,16 +13,8 @@ $relatedCount = 0;
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end gap-3 mb-4">
         <div>
             <h2 class="fw-bold tracking-tight mb-1 text-dark">
-                Social Media Threat Intelligence <span class="text-primary">Dashboard</span>
+                View Post <span class="text-primary">Request ID: <?= $osintaidata[0]['request_id'] ?></span>
             </h2>
-            <div class="d-flex align-items-center gap-2">
-                <small class="text-muted fw-medium">
-                    <i class="bi bi-cpu-fill me-1"></i> Multi-platform Analysis:
-                </small>
-                <span class="badge bg-light text-dark border-0 shadow-none px-2 py-1">X</span>
-                <span class="badge bg-light text-dark border-0 shadow-none px-2 py-1">Facebook</span>
-                <span class="badge bg-light text-dark border-0 shadow-none px-2 py-1">TikTok</span>
-            </div>
         </div>
 
         <div class="report-counter p-3 shadow-sm border text-center">
@@ -42,219 +36,240 @@ $relatedCount = 0;
     <?php endif; ?>
 
     <div class="row g-4 mb-5">
-    <div class="col-md-4">
-        <div class="card border-0 shadow-sm rounded-4 h-100">
-            <div class="card-body p-4">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <div class="bg-primary-subtle text-primary p-3 rounded-3">
-                        <i class="bi bi-activity fs-4"></i>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="bg-primary-subtle text-primary p-3 rounded-3">
+                            <i class="bi bi-activity fs-4"></i>
+                        </div>
+                        <span class="badge bg-light text-muted border">Mean Score</span>
                     </div>
-                    <span class="badge bg-light text-muted border">Mean Score</span>
+                    <h2 class="fw-black mb-1"><?= $metrics['avgScore'] ?></h2>
+                    <p class="text-muted small mb-0">Average intelligence score across all active feeds.</p>
                 </div>
-                <h2 class="fw-black mb-1"><?= $metrics['avgScore'] ?></h2>
-                <p class="text-muted small mb-0">Average intelligence score across all active feeds.</p>
             </div>
         </div>
-    </div>
 
-    <div class="col-md-4">
-        <div class="card border-0 shadow-sm rounded-4 h-100 bg-danger text-white"
-        onclick="window.location.href='<?= Url::to(['osint/critical']) ?>'" 
-         style="cursor: pointer;">
-            <div class="card-body p-4">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <div class="bg-white bg-opacity-25 p-3 rounded-3">
-                        <i class="bi bi-exclamation-octagon fs-4 text-white"></i>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm rounded-4 h-100 bg-danger text-white"
+                onclick="window.location.href='<?= Url::to(['osint/critical']) ?>'" style="cursor: pointer;">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="bg-white bg-opacity-25 p-3 rounded-3">
+                            <i class="bi bi-exclamation-octagon fs-4 text-white"></i>
+                        </div>
+                        <span class="badge bg-white bg-opacity-25 border-0">Immediate Action</span>
                     </div>
-                    <span class="badge bg-white bg-opacity-25 border-0">Immediate Action</span>
+                    <h2 class="fw-black mb-1"><?= $metrics['critical'] ?></h2>
+                    <p class="small mb-0 opacity-75">Critical threats detected requiring immediate tactical review.</p>
                 </div>
-                <h2 class="fw-black mb-1"><?= $metrics['critical'] ?></h2>
-                <p class="small mb-0 opacity-75">Critical threats detected requiring immediate tactical review.</p>
             </div>
         </div>
-    </div>
 
-    <div class="col-md-4">
-        <div class="card border-0 shadow-sm rounded-4 h-100">
-            <div class="card-body p-4">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <div class="bg-dark-subtle text-dark p-3 rounded-3">
-                        <i class="bi bi-rss fs-4"></i>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="bg-dark-subtle text-dark p-3 rounded-3">
+                            <i class="bi bi-rss fs-4"></i>
+                        </div>
+                        <span class="badge bg-light text-muted border">Data Ingress</span>
                     </div>
-                    <span class="badge bg-light text-muted border">Data Ingress</span>
-                </div>
-                <h2 class="fw-black mb-1"><?= $metrics['totalPosts'] ?></h2>
-                <p class="text-muted small mb-0">Total unique social media posts analyzed in current period.</p>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="row">
-    <div class="col-md-12 mb-4">
-        <div class="card border-0 shadow-sm rounded-4 h-100">
-            <div class="card-header bg-transparent border-0 pt-4 px-4">
-                <h5 class="fw-bold mb-0">Platform Distribution</h5>
-                <small class="text-muted">Breakdown of intelligence sources</small>
-            </div>
-            <div class="card-body px-4 pb-4">
-                <div style="max-height: 300px;">
-                    <canvas id="platformChart"></canvas>
+                    <h2 class="fw-black mb-1"><?= $metrics['totalPosts'] ?></h2>
+                    <p class="text-muted small mb-0">Total unique social media posts analyzed in current period.</p>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-<div class="row g-4 mb-5">
-    <div class="col-md-6">
-        <div class="card border-0 shadow-sm rounded-4 h-100">
-            <div class="card-body p-0">
-                <div class="p-4 border-bottom">
-                    <h5 class="fw-bold mb-0"><i class="bi bi-geo-alt-fill text-danger me-2"></i>Geospatial Hotspots</h5>
-                    <small class="text-muted">Areas with highest frequency of critical signals</small>
+    <div class="row">
+        <div class="col-md-12 mb-4">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-header bg-transparent border-0 pt-4 px-4">
+                    <h5 class="fw-bold mb-0">Platform Distribution</h5>
+                    <small class="text-muted">Breakdown of intelligence sources</small>
                 </div>
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead class="bg-light">
-                            <tr>
-                                <th class="ps-4 border-0">Location</th>
-                                <th class="border-0">Alert Count</th>
-                                <th class="border-0">Max Risk</th>
-                                <th class="pe-4 border-0 text-end">Map</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        <?php if (!empty($topLocations)): ?>
-                            <?php foreach ($topLocations as $name => $data): ?>
-                            <tr>
-                                <td class="ps-4 fw-bold"><?= Html::encode($name) ?></td>
-                                <td>
-                                    <span class="badge bg-dark rounded-pill">
-                                        <?= $data['count'] ?> Reports
-                                    </span>
-                                </td>
-                                <td>
-                                    <div class="progress" style="height: 6px; width: 100px;">
-                                        <div class="progress-bar bg-<?= $data['max_score'] >= 70 ? 'danger' : 'warning' ?>" 
-                                            style="width: <?= $data['max_score'] ?>%">
+                <div class="card-body px-4 pb-4">
+                    <div style="max-height: 300px;">
+                        <canvas id="platformChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-5">
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-body p-0">
+                    <div class="p-4 border-bottom">
+                        <h5 class="fw-bold mb-0"><i class="bi bi-geo-alt-fill text-danger me-2"></i>Geospatial Hotspots
+                        </h5>
+                        <small class="text-muted">Areas with highest frequency of critical signals</small>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="ps-4 border-0">Location</th>
+                                    <th class="border-0">Alert Count</th>
+                                    <th class="border-0">Max Risk</th>
+                                    <th class="pe-4 border-0 text-end">Map</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php if (!empty($topLocations)): ?>
+                                <?php foreach ($topLocations as $name => $data): ?>
+                                <tr>
+                                    <td class="ps-4 fw-bold"><?= Html::encode($name) ?></td>
+                                    <td>
+                                        <span class="badge bg-dark rounded-pill">
+                                            <?= $data['count'] ?> Reports
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="progress" style="height: 6px; width: 100px;">
+                                            <div class="progress-bar bg-<?= $data['max_score'] >= 70 ? 'danger' : 'warning' ?>"
+                                                style="width: <?= $data['max_score'] ?>%">
+                                            </div>
                                         </div>
-                                    </div>
-                                </td>
-                                <td class="pe-4 text-end">
-                                    <a href="https://www.google.com/maps/search/<?= urlencode($name . ', Kenya') ?>" 
-                                    target="_blank" 
-                                    class="btn btn-sm btn-light border">
-                                        <i class="bi bi-map"></i>
-                                    </a>
-                                </td>
-                            </tr>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <tr>
-                                <td colspan="4" class="text-center text-muted py-4">
-                                    No critical locations detected.
-                                </td>
-                            </tr>
-                        <?php endif; ?>
-                        </tbody>
-                    </table>
+                                    </td>
+                                    <td class="pe-4 text-end">
+                                        <a href="https://www.google.com/maps/search/<?= urlencode($name . ', Kenya') ?>"
+                                            target="_blank" class="btn btn-sm btn-light border">
+                                            <i class="bi bi-map"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                <?php endforeach; ?>
+                                <?php else: ?>
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted py-4">
+                                        No critical locations detected.
+                                    </td>
+                                </tr>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <div class="col-md-6">
-        <!-- Entity Mapping Table -->
-        <div class="card border-0 shadow-sm rounded-4 h-100">
-            <div class="card-body p-4">
-                <h5 class="fw-bold mb-3"><i class="bi bi-people-fill text-primary me-2"></i>Entity Mapping</h5>
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0 user-mapping-table">
-                        <thead class="bg-light">
-                            <tr>
-                                <th class="ps-4 border-0">User</th>
-                                <th class="border-0">High-Threat Posts</th>
-                                <th class="border-0">Activity</th>
-                                <th class="border-0">Platforms</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        <?php if (!empty($userMap)): ?>
-                            <?php foreach ($userMap as $user => $data): ?>
-                            <tr>
-                                <td class="ps-4 fw-bold"><?= Html::encode($user) ?></td>
-                                <td>
-                                    <span class="badge bg-danger rounded-pill"><?= $data['count'] ?></span>
-                                </td>
-                                <td>
-                                    <div class="progress" style="height: 6px; min-width: 100px;">
-                                        <?php
+        <div class="col-md-6">
+            <!-- Entity Mapping Table -->
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3"><i class="bi bi-people-fill text-primary me-2"></i>Entity Mapping</h5>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0 user-mapping-table">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="ps-4 border-0">User</th>
+                                    <th class="border-0">High-Threat Posts</th>
+                                    <th class="border-0">Activity</th>
+                                    <th class="border-0">Platforms</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php if (!empty($userMap)): ?>
+                                <?php foreach ($userMap as $user => $data): ?>
+                                <tr>
+                                    <td class="ps-4 fw-bold"><?= Html::encode($user) ?></td>
+                                    <td>
+                                        <span class="badge bg-danger rounded-pill"><?= $data['count'] ?></span>
+                                    </td>
+                                    <td>
+                                        <div class="progress" style="height: 6px; min-width: 100px;">
+                                            <?php
                                         // calculate relative width for progress (max = highest count)
                                         $maxCount = max(array_column($userMap, 'count'));
                                         $width = $maxCount > 0 ? ($data['count'] / $maxCount) * 100 : 0;
                                         ?>
-                                        <div class="progress-bar bg-danger" style="width: <?= $width ?>%"></div>
-                                    </div>
-                                </td>
-                                <td>
-                                    <?= implode(', ', array_unique($data['platforms'])) ?>
-                                </td>
-                            </tr>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <tr>
-                                <td colspan="4" class="text-center text-muted py-4">
-                                    No entity mapping available.
-                                </td>
-                            </tr>
-                        <?php endif; ?>
-                        </tbody>
-                    </table>
+                                            <div class="progress-bar bg-danger" style="width: <?= $width ?>%"></div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <?= implode(', ', array_unique($data['platforms'])) ?>
+                                    </td>
+                                </tr>
+                                <?php endforeach; ?>
+                                <?php else: ?>
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted py-4">
+                                        No entity mapping available.
+                                    </td>
+                                </tr>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-    <hr class="opacity-10 mb-4">
+    <?php  
+    $form = ActiveForm::begin([
+        'id' => 'risk-score-form',
+        'options' => ['class' => 'p-3'],
+        'action' => 'manually-update-threat-score'
+    ]); ?>
 
-    <div class="mb-4">
-        <label class="small fw-bold text-uppercase text-muted mb-2 d-block"
-            style="font-size: 0.7rem; letter-spacing: 1px;">Quick filters</label>
-        <div class="d-flex flex-wrap gap-2">
-            <button class="btn btn-outline-danger btn-sm tactical-btn modern-pill"
-                data-keyword="al shabaab terrorism attack Kenya">
-                <i class="bi bi-shield-lock-fill me-1"></i> Terrorism
-            </button>
-            <button class="btn btn-outline-warning btn-sm tactical-btn modern-pill"
-                data-keyword="kidnapped abducted ransom Kenya">
-                <i class="bi bi-person-exclamation me-1"></i> Kidnapping
-            </button>
-            <button class="btn btn-outline-dark btn-sm tactical-btn modern-pill"
-                data-keyword="gang violence shooting Kenya">
-                <i class="bi bi-geo-alt-fill me-1"></i> Gangs
-            </button>
-        </div>
-    </div>
+    <input type="hidden" name="request_id" value="<?= $osintaidata[0]['request_id'] ?>">
 
-    <form id="osint-search-form" class="mb-5">
-        <div class="search-container shadow-sm">
-            <div class="input-group">
-                <span class="input-group-text border-0 bg-transparent ps-4">
-                    <i class="bi bi-terminal text-primary"></i>
-                </span>
-                <input id="keyword-input" type="text" class="form-control border-0 bg-transparent py-3 shadow-none"
-                    placeholder="Search keyword (e.g. gang violence, protests...)">
-                <button class="btn btn-primary px-5 fw-bold scan-button" type="submit">SCAN</button>
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+
+        <div id="risk-top-border" class="py-1"></div>
+
+        <div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-start mb-4">
+                <div>
+                    <h6 class="fw-bold text-uppercase text-secondary mb-1" style="letter-spacing: 1px;">
+                        Risk Assessment
+                    </h6>
+                    <h4 class="fw-bold text-dark mb-0">Refine Rating</h4>
+                </div>
+                <div class="text-end">
+                    <span id="risk-badge"
+                        class="badge rounded-pill bg-success-subtle text-success border border-success px-3 py-2">
+                        LOW RISK
+                    </span>
+                </div>
             </div>
-        </div>
-    </form>
 
-    <div id="loading-spinner" class="text-center py-5 d-none">
-        <div class="spinner-border text-primary"></div>
-        <div class="mt-2 text-muted">Analyzing data sources…</div>
+            <p class="text-muted small mb-4">
+                Adjust the slider if the AI's calculation doesn't match the human context of this threat.
+            </p>
+
+            <div class="rounded-3 p-4 mb-4 border">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="badge bg-white text-dark border shadow-sm px-2">Safe</span>
+                    <div class="text-center">
+                        <span id="rangescorevalue" class="display-6 fw-bold text-primary"> <?= $osintaidata[0]['numerical_score'] ?> %</span>
+                    </div>
+                    <span class="badge bg-white text-dark border shadow-sm px-2">High</span>
+                </div>
+
+                <input type="range" name="threat_score" class="form-range" min="0" max="100" value="<?= $osintaidata[0]['numerical_score'] ?>" id="rangescore"
+                    oninput="updateRiskUI(this.value)">
+
+                <div class="d-flex justify-content-between mt-2">
+                    <small class="text-muted fw-light">Minimal Threat</small>
+                    <small class="text-muted fw-light">Critical Threat</small>
+                </div>
+            </div>
+
+            <div class="text-center">
+            <button type="submit" class="btn btn-dark rounded-pill px-5 py-2 fw-bold shadow-sm border-0">
+                UPDATE RATING
+            </button>
+        </div>
+        </div>
     </div>
+
+    <?php ActiveForm::end(); ?>
 
     <div id="results-container" class="row g-4">
         <?php foreach ($osintaidata as $model): 
@@ -335,8 +350,8 @@ $relatedCount = 0;
                                     <div class="collapse mb-3" id="map-<?= $model->id ?>">
                                         <div class="rounded-3 overflow-hidden border shadow-sm position-relative"
                                             style="height: 220px;">
-                                            <iframe width="100%" loading="lazy" height="100%" frameborder="0" src="<?= $mapEmbedUrl ?>"
-                                                allowfullscreen></iframe>
+                                            <iframe width="100%" loading="lazy" height="100%" frameborder="0"
+                                                src="<?= $mapEmbedUrl ?>" allowfullscreen></iframe>
                                             <a href="<?= $mapRedirectUrl ?>" target="_blank"
                                                 class="btn btn-primary btn-sm position-absolute bottom-0 end-0 m-2 shadow-sm fw-bold">
                                                 <i class="bi bi-cursor-fill me-1"></i> Open in Maps
@@ -407,7 +422,8 @@ $relatedCount = 0;
                                 View Related Posts <i class="bi bi-arrow-right-short"></i>
                             </button>
 
-                            <a href="<?= Url::to(['view', 'request_id' => $model->request_id]) ?>" class="btn btn-dark rounded-pill float-end">View Details</a>
+                            <a href="<?= Url::to(['view',['request_id' => $model->request_id]]) ?>"
+                                class="btn btn-dark rounded-pill float-end">View Details</a>
 
                         </div>
                     </div>
@@ -482,6 +498,36 @@ $relatedCount = 0;
         <?php endforeach; ?>
     </div>
 </div>
+
+<?php
+$js = <<<JS
+
+$('#risk-score-form').on('beforeSubmit', function (e) {
+
+    e.preventDefault();
+
+    let form = $(this);
+    let score = $('#rangescore').val();
+
+    Swal.fire({
+        title: 'Confirm Rating Update',
+        text: "Set score to " + score + "%?",
+        icon: 'warning',
+        showCancelButton: true,
+    }).then((result) => {
+        if (result.isConfirmed) {
+            form.off('beforeSubmit'); // remove handler
+            form.submit();
+        }
+    });
+
+    return false;
+});
+
+JS;
+
+$this->registerJs($js);
+?>
 
 <style>
 /* CORE AESTHETICS */
@@ -571,38 +617,10 @@ $relatedCount = 0;
 }
 </style>
 
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-const spinner = document.getElementById('loading-spinner');
-const results = document.getElementById('results-container');
 
-// Search Logic
-document.getElementById('osint-search-form').onsubmit = e => {
-    e.preventDefault();
-    spinner.classList.remove('d-none');
-    results.classList.add('opacity-50');
-
-    fetch('<?= Url::to(['osint/fetch']) ?>', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'X-CSRF-Token': '<?= Yii::$app->request->getCsrfToken() ?>'
-            },
-            body: 'keyword=' + encodeURIComponent(document.getElementById('keyword-input').value)
-        })
-        .then(r => r.json())
-        .then(() => {
-            location.reload();
-        });
-};
-
-// Quick Filters
-document.querySelectorAll('.tactical-btn').forEach(b => {
-    b.onclick = () => {
-        document.getElementById('keyword-input').value = b.dataset.keyword;
-        document.getElementById('osint-search-form').dispatchEvent(new Event('submit'));
-    };
-});
 
 document.addEventListener("DOMContentLoaded", function() {
     const ctx = document.getElementById('platformChart').getContext('2d');
@@ -612,7 +630,9 @@ document.addEventListener("DOMContentLoaded", function() {
             labels: <?= json_encode($metrics['platformLabels']) ?>,
             datasets: [{
                 data: <?= json_encode($metrics['platformData']) ?>,
-                backgroundColor: ['#0d6efd', '#6610f2', '#6f42c1', '#d63384', '#dc3545', '#fd7e14'],
+                backgroundColor: ['#0d6efd', '#6610f2', '#6f42c1', '#d63384', '#dc3545',
+                    '#fd7e14'
+                ],
                 hoverOffset: 10,
                 borderWidth: 0
             }]
@@ -621,7 +641,13 @@ document.addEventListener("DOMContentLoaded", function() {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-                legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20 } }
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        usePointStyle: true,
+                        padding: 20
+                    }
+                }
             },
             cutout: '70%'
         }
@@ -642,6 +668,23 @@ document.addEventListener("DOMContentLoaded", function() {
         ]
     });
 });
+
+function updateRiskUI(val) {
+    const output = document.getElementById('rangescorevalue');
+    const badge = document.getElementById('risk-badge');
+    output.innerHTML = val + '%';
+
+    if (val < 30) {
+        badge.innerHTML = "Low Risk";
+        badge.className = "badge rounded-pill bg-success px-3 py-2";
+    } else if (val < 70) {
+        badge.innerHTML = "Moderate Risk";
+        badge.className = "badge rounded-pill bg-warning text-dark px-3 py-2";
+    } else {
+        badge.innerHTML = "High Risk";
+        badge.className = "badge rounded-pill bg-danger px-3 py-2";
+    }
+}
 
 
 

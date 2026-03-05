@@ -12,6 +12,9 @@ use app\models\Log;
 use app\models\LogType;
 use app\models\OsintAiAnalysis;
 use app\models\OsintPost;
+use yii\web\NotFoundHttpException;
+use yii\web\BadRequestHttpException;
+use yii\base\Exception;
 
 /**
  * Global OSINT Threat Intelligence Controller
@@ -243,6 +246,109 @@ public function actionCritical()
     ]);
 }
 
+public function actionView($request_id)
+{
+    $role = GlobalHelper::CurrentUser('role');
+    $userId = GlobalHelper::CurrentUser('id');
+
+    // --- Base Queries ---
+    $query = OsintAiAnalysis::find()->where(['request_id' => $request_id]);
+    $postQuery = OsintPost::find();
+
+    if ($role !== 'admin') {
+        $query->andWhere(['created_by' => $userId]);
+        $postQuery->andWhere(['created_by' => $userId]);
+    }
+
+    $osintaidata = $query->all();
+
+    if($osintaidata == null)
+    {
+        throw new NotFoundHttpException('The requested data is not available');
+    }
+
+    // --- Collect Request IDs for high-threat reports ---
+    $highThreatIds = [];
+    foreach ($osintaidata as $analysis) {
+        if ((int)$analysis->numerical_score >= 70) {
+            $highThreatIds[] = $analysis->request_id;
+        }
+    }
+
+    // --- Related Posts ---
+    $relatedPosts = [];
+    if (!empty($highThreatIds)) {
+        $relatedPosts = OsintPost::find()
+            ->where(['request_id' => $highThreatIds])
+            ->all();
+    }
+
+    // --- Metrics ---
+    $totalReports = count($osintaidata);
+    $scores = array_column($osintaidata, 'numerical_score');
+    $avgScore = $totalReports > 0 ? array_sum($scores) / $totalReports : 0;
+    $criticalCount = count($highThreatIds);
+
+    // --- Platform aggregation ---
+    $platformCounts = [];
+    foreach ($relatedPosts as $post) {
+        $p = $post->platform ?: 'Unknown';
+        $platformCounts[$p] = ($platformCounts[$p] ?? 0) + 1;
+    }
+
+    // --- Location aggregation ---
+    $locationStats = [];
+    foreach ($osintaidata as $analysis) {
+        if (empty($analysis->report)) continue;
+        $report = json_decode($analysis->report, true);
+        if (!is_array($report)) continue;
+
+        $score = (int)$analysis->numerical_score;
+
+        if (!empty($report['localized_risks']) && is_array($report['localized_risks'])) {
+            foreach ($report['localized_risks'] as $risk) {
+                if (empty($risk['location'])) continue;
+                $loc = trim($risk['location']);
+                if (!isset($locationStats[$loc])) {
+                    $locationStats[$loc] = ['count' => 0, 'max_score' => 0];
+                }
+                $locationStats[$loc]['count']++;
+                $locationStats[$loc]['max_score'] = max($locationStats[$loc]['max_score'], $score);
+            }
+        }
+    }
+
+    uasort($locationStats, fn($a, $b) => $b['count'] <=> $a['count']);
+    $topLocations = array_slice($locationStats, 0, 5, true); // still top 5 by location frequency
+
+    // --- USER MAPPING: Count number of high-threat posts per user ---
+    $userMap = [];
+    foreach ($relatedPosts as $post) {
+        if (empty($post->author)) continue;
+        $author = trim($post->author);
+        $platform = $post->platform ?: 'Unknown';
+        $userMap[$author]['count'] = ($userMap[$author]['count'] ?? 0) + 1;
+        $userMap[$author]['platforms'][] = $platform;
+    }
+
+    // Sort users by number of high-threat posts DESC
+    uasort($userMap, fn($a, $b) => $b['count'] <=> $a['count']);
+
+    return $this->render('view', [
+        'osintaidata' => $osintaidata,
+        'relatedPosts' => $relatedPosts,
+        'topLocations' => $topLocations,
+        'userMap' => $userMap, // all users with counts, sorted
+        'metrics' => [
+            'avgScore' => round($avgScore, 1),
+            'critical' => $criticalCount,
+            'totalPosts' => count($relatedPosts),
+            'platformLabels' => array_keys($platformCounts),
+            'platformData' => array_values($platformCounts),
+        ]
+    ]);
+}
+
 
 
 
@@ -311,22 +417,87 @@ public function actionCritical()
         }
     }
 
-    /**
-     * Threat Map View - Pass map markers to the Leaflet frontend
-     */
-    public function actionThreatMap($keyword = null)
+    public function actionManuallyUpdateThreatScore()
     {
-        $mapData = [];
-        if ($keyword) {
-            $data = Yii::$app->globalOSINTAnalyzer->fetchGlobalOSINTData($keyword);
-            $mapData = $data['map_data'] ?? [];
+        $request = Yii::$app->request;
+
+        if (!$request->isPost) {
+            throw new BadRequestHttpException('Invalid request method.');
         }
 
-        return $this->render('threat-map', [
-            'mapData' => $mapData,
-            'keyword' => $keyword
-        ]);
+        $request_id   = $request->post('request_id');
+        $threat_score = $request->post('threat_score');
+
+        if (empty($request_id) || $threat_score === null) {
+            throw new BadRequestHttpException('Missing required parameters.');
+        }
+
+        if (!is_numeric($threat_score)) {
+            throw new BadRequestHttpException('Threat score must be numeric.');
+        }
+
+        $osint_ai_analysis = OsintAiAnalysis::findOne(['request_id' => $request_id]);
+
+        if (!$osint_ai_analysis) {
+            throw new NotFoundHttpException('AI Analysis record not found.');
+        }
+
+        $original_rating = $osint_ai_analysis->numerical_score;
+
+        $transaction = Yii::$app->db->beginTransaction();
+
+        try {
+
+            // 1️. Update AI Analysis
+            $osint_ai_analysis->numerical_score = $threat_score;
+
+            if (!$osint_ai_analysis->save(false)) {
+                throw new Exception('Failed to update AI analysis score.');
+            }
+
+            // 2️. Bulk update ALL OSINT posts for this request
+            $rowsUpdated = OsintPost::updateAll(
+                ['threat_score' => $threat_score],
+                ['request_id' => $request_id]
+            );
+
+            if ($rowsUpdated === 0) {
+                throw new Exception('No OSINT posts were updated.');
+            }
+
+            // 3️. Log HITL action
+            Log::log(
+                'Human in the Loop (HITL) Action',
+                'Manually updated AI threat score for request ID: ' . $request_id .
+                ' from ' . $original_rating . ' to ' . $threat_score,
+                LogType::RECORD_CHANGE,
+                [
+                    'request_id' => $request_id,
+                    'original_score' => $original_rating,
+                    'new_score' => $threat_score,
+                    'affected_posts' => $rowsUpdated,
+                    'updated_by' => Yii::$app->user->id ?? null,
+                ]
+            );
+
+            $transaction->commit();
+
+            Yii::$app->session->setFlash('success', 
+                "Threat score updated successfully. {$rowsUpdated} posts affected."
+            );
+
+        } catch (\Throwable $e) {
+
+            $transaction->rollBack();
+
+            Yii::error($e->getMessage());
+
+            Yii::$app->session->setFlash('error', 'Failed to update threat score.');
+        }
+
+        return $this->redirect(['view', 'request_id' => $request_id]);
     }
+
 
     /**
      * Endpoint for AJAX Charting & Visuals
