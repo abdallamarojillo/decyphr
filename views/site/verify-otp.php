@@ -1,6 +1,6 @@
 <?php
 use yii\helpers\Html;
-use yii\widgets\ActiveForm;
+use yii\bootstrap5\ActiveForm; // Switched to bootstrap5 for consistency
 
 /** @var yii\web\View $this */
 /** @var app\models\OtpForm $model */
@@ -8,54 +8,60 @@ use yii\widgets\ActiveForm;
 $this->title = 'Verify OTP';
 ?>
 
-<div class="site-verify-otp d-flex flex-column align-items-center justify-content-center mt-5" style="max-width: 400px; margin: auto;">
-
-    <!-- Key Icon -->
-    <div class="mb-4 text-primary">
-        <i class="fas fa-key fa-3x"></i>
-    </div>
-
-    <h3 class="mb-2 text-center fw-bold">Two-Factor Authentication</h3>
-
-    <p class="text-muted text-center mb-4">
-        Enter the 6-digit code sent to your email and phone.
-    </p>
-
-    <?php $form = ActiveForm::begin([
-        'id' => 'otp-form',
-        'options' => ['class' => 'w-100']
-    ]); ?>
-
-        <?= $form->field($model, 'otp')->textInput([
-            'maxlength' => 6,
-            'placeholder' => 'Enter OTP',
-            'autocomplete' => 'one-time-code',
-            'class' => 'form-control text-center py-3',
-            'style' => 'letter-spacing: 10px; font-size: 1.75rem; border-radius: 0.75rem; border: 1px solid #ced4da;'
-        ])->label(false) ?>
-
-        <div class="d-grid gap-2 mt-4">
-            <?= Html::submitButton('Verify & Login', ['class' => 'btn btn-primary btn-lg shadow-sm']) ?>
+<div class="site-verify-otp bg-light min-vh-100 d-flex align-items-center justify-content-center p-3">
+    <div class="card border-0 shadow-lg rounded-4 p-4 p-md-5" style="max-width: 450px; width: 100%;">
+        
+        <div class="d-flex justify-content-center mb-4">
+            <div class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center" 
+                 style="width: 80px; height: 80px;">
+                <i class="fas fa-shield-alt fa-2x text-primary"></i>
+            </div>
         </div>
 
-    <?php ActiveForm::end(); ?>
+        <div class="text-center mb-4">
+            <h3 class="fw-bold text-dark mb-2">Two-Factor Auth</h3>
+            <p class="text-muted small px-3">
+                We've sent a 6-digit verification code to your registered devices.
+            </p>
+        </div>
 
-    <div class="text-center mt-3">
-        <small class="text-muted">
-            Didn’t receive the code?
-            <?= Html::a('Resend OTP', ['site/resend-otp'], ['class' => 'fw-bold text-decoration-none']) ?>
-        </small>
+        <?php $form = ActiveForm::begin([
+            'id' => 'otp-form',
+            'fieldConfig' => [
+                'template' => "{input}\n{error}",
+                'errorOptions' => ['class' => 'invalid-feedback text-center mt-2'],
+            ],
+        ]); ?>
+
+            <?= $form->field($model, 'otp')->textInput([
+                'maxlength' => 6,
+                'placeholder' => '000000',
+                'autocomplete' => 'one-time-code',
+                // Using bg-light border-0 for that sleek modern input feel
+                'class' => 'form-control form-control-lg text-center fw-bold bg-light border-0 shadow-none py-3',
+                'style' => 'letter-spacing: 12px; font-size: 2rem; border-radius: 12px;'
+            ]) ?>
+
+            <div class="d-grid gap-2 mt-4">
+                <?= Html::submitButton('Verify & Login', [
+                    'class' => 'btn btn-primary btn-lg border-0 rounded-3 fw-bold shadow-sm py-3',
+                    'style' => 'background-color: #002f87;' 
+                ]) ?>
+            </div>
+
+        <?php ActiveForm::end(); ?>
+
+        <div class="text-center mt-4 pt-2">
+            <p class="text-muted small mb-0">Didn’t receive the code?</p>
+            <?= Html::a('Resend New Code', ['site/resend-otp'], [
+                'class' => 'fw-bold text-decoration-none text-primary small'
+            ]) ?>
+        </div>
+
+        <div class="mt-4 text-center border-top pt-3">
+            <?= Html::a('<i class="fas fa-arrow-left me-2"></i>Back to Login', ['site/login'], [
+                'class' => 'text-muted text-decoration-none small fw-medium'
+            ]) ?>
+        </div>
     </div>
 </div>
-
-<style>
-    .form-control:focus {
-        border-color: #0069d9;
-        box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
-    }
-    .btn-primary:hover {
-        background-color: #0056b3;
-        border-color: #004085;
-    }
-</style>
-

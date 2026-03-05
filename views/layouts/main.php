@@ -30,67 +30,70 @@ $this->beginPage();
 <body>
     <?php $this->beginBody() ?>
 
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark" style="background: linear-gradient(135deg, #002f87, #03E277);">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="<?= Url::to(['/']) ?>">
-                <img src="<?= Yii::$app->params['logo'] ?>" alt="<?= Yii::$app->name ?>" height="30">
-                <?= Yii::$app->name; ?>
-            </a>
+<nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top py-3">
+    <div class="container">
+        <a class="navbar-brand d-flex align-items-center" href="<?= Url::to(['/']) ?>">
+            <img src="<?= Yii::$app->params['logo'] ?>" alt="<?= Yii::$app->name ?>" height="35" class="me-2">
+            <span class="fw-bold tracking-tight text-dark"><?= Yii::$app->name; ?></span>
+        </a>
 
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
-                    <?php if (!Yii::$app->user->isGuest): ?>
+        <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4">
+                <?php if (!Yii::$app->user->isGuest): ?>
+                    <li class="nav-item me-2">
+                        <a class="nav-link fw-medium px-3 text-secondary" href="<?= Url::to(['dashboard/index']) ?>">
+                            <i class="fas fa-tachometer-alt me-1 opacity-75"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item me-2">
+                        <a class="nav-link fw-medium px-3 text-secondary" href="<?= Url::to(['message/index']) ?>">
+                            <i class="fas fa-envelope me-1 opacity-75"></i> Messages
+                        </a>
+                    </li>
+                    <li class="nav-item me-2">
+                        <a class="nav-link fw-medium px-3 text-secondary" href="<?= Url::to(['osint/index']) ?>">
+                            <i class="fab fa-connectdevelop me-1 opacity-75"></i> OSINT
+                        </a>
+                    </li>
+                    <li class="nav-item me-2">
+                        <a class="nav-link fw-medium px-3 text-secondary" href="<?= Url::to(['site/logs']) ?>">
+                            <i class="fa fa-history me-1 opacity-75"></i> Logs
+                        </a>
+                    </li>
+                <?php endif; ?>
+            </ul>
+
+            <ul class="navbar-nav align-items-center">
+                <?php if (!Yii::$app->user->isGuest): ?>
                     <li class="nav-item">
-                        <a class="nav-link" href="<?= Url::to(['dashboard/index']) ?>">
-                            <i class="fas fa-tachometer-alt"></i> Dashboard
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="<?= Url::to(['message/index']) ?>">
-                            <i class="fas fa-envelope"></i> Messages
-                        </a>
-                    </li>
-                    <li class="nav-item" title="Analyse Social Media Posts">
-                        <a class="nav-link" href="<?= Url::to(['osint/index']) ?>">
-                            <i class="fab fa-connectdevelop"></i> OSINT
-                        </a>
-                    </li>
-                    <li class="nav-item" title="System Logs">
-                        <a class="nav-link" href="<?= Url::to(['site/logs']) ?>">
-                            <i class="fa fa-history"></i> Logs
-                        </a>
-                    </li>
-                    <?php endif; ?>
-                </ul>
-                <ul class="navbar-nav">
-                    <?php if (!Yii::$app->user->isGuest): ?>
-                    <li class="nav-item">
-                        <a class="nav-link" href="<?= Url::to(['message/upload']) ?>">
-                            <i class="fas fa-upload"></i> Upload Message
+                        <a class="nav-link fw-semibold text-primary px-3" href="<?= Url::to(['message/upload']) ?>">
+                            <i class="fas fa-cloud-upload-alt me-1"></i> Upload
                         </a>
                     </li>
                     <li class="nav-item ms-lg-3">
                         <?= Html::beginForm(['/site/logout'], 'post', ['class' => 'd-inline'])
                         . Html::submitButton(
-                            '<i class="fas fa-sign-out-alt"></i> Logout (' . Yii::$app->user->identity->username . ')',
-                            ['class' => 'btn btn-outline-light btn-sm mt-1']
+                            '<i class="fas fa-sign-out-alt me-1"></i> Logout (' . Yii::$app->user->identity->username . ')',
+                            ['class' => 'btn btn-outline-danger btn-sm rounded-pill px-4 fw-bold']
                         )
                         . Html::endForm() ?>
                     </li>
-                    <?php else: ?>
+                <?php else: ?>
                     <li class="nav-item">
-                        <a class="nav-link" href="<?= Url::to(['site/login']) ?>">
-                            <i class="fas fa-sign-in-alt"></i> Login
+                        <a class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm" href="<?= Url::to(['site/login']) ?>" 
+                           style="background-color: #002f87; border: none;">
+                            <i class="fas fa-sign-in-alt me-1"></i> Login
                         </a>
                     </li>
-                    <?php endif; ?>
-                </ul>
-            </div>
+                <?php endif; ?>
+            </ul>
         </div>
-    </nav>
+    </div>
+</nav>
 
     <div class="container-fluid mt-4">
         <?php if (Yii::$app->session->hasFlash('success')): ?>
