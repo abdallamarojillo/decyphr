@@ -30,6 +30,82 @@ $relatedCount = 0;
         </div>
     </div>
 
+    <?php if (isset($isCriticalView) && $isCriticalView): ?>
+    <div class="alert alert-danger border-0 shadow-sm rounded-4 mb-4 d-flex align-items-center">
+        <i class="bi bi-exclamation-octagon-fill fs-4 me-3"></i>
+        <div>
+            <h6 class="mb-0 fw-bold">Critical Threat View Enabled</h6>
+            <small>Showing only high-risk intelligence with scores of 70 or higher.</small>
+        </div>
+        <?= Html::a('Clear Filter', ['index'], ['class' => 'btn btn-sm btn-outline-danger ms-auto rounded-pill']) ?>
+    </div>
+    <?php endif; ?>
+
+    <div class="row g-4 mb-5">
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="bg-primary-subtle text-primary p-3 rounded-3">
+                        <i class="bi bi-activity fs-4"></i>
+                    </div>
+                    <span class="badge bg-light text-muted border">Mean Score</span>
+                </div>
+                <h2 class="fw-black mb-1"><?= $metrics['avgScore'] ?></h2>
+                <p class="text-muted small mb-0">Average intelligence score across all active feeds.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm rounded-4 h-100 bg-danger text-white"
+        onclick="window.location.href='<?= Url::to(['osint/critical']) ?>'" 
+         style="cursor: pointer;">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="bg-white bg-opacity-25 p-3 rounded-3">
+                        <i class="bi bi-exclamation-octagon fs-4 text-white"></i>
+                    </div>
+                    <span class="badge bg-white bg-opacity-25 border-0">Immediate Action</span>
+                </div>
+                <h2 class="fw-black mb-1"><?= $metrics['critical'] ?></h2>
+                <p class="small mb-0 opacity-75">Critical threats detected requiring immediate tactical review.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="bg-dark-subtle text-dark p-3 rounded-3">
+                        <i class="bi bi-rss fs-4"></i>
+                    </div>
+                    <span class="badge bg-light text-muted border">Data Ingress</span>
+                </div>
+                <h2 class="fw-black mb-1"><?= $metrics['totalPosts'] ?></h2>
+                <p class="text-muted small mb-0">Total unique social media posts analyzed in current period.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4 mb-4">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-header bg-transparent border-0 pt-4 px-4">
+                <h5 class="fw-bold mb-0">Platform Distribution</h5>
+                <small class="text-muted">Breakdown of intelligence sources</small>
+            </div>
+            <div class="card-body px-4 pb-4">
+                <div style="max-height: 300px;">
+                    <canvas id="platformChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
     <hr class="opacity-10 mb-4">
 
     <div class="mb-4">
@@ -77,8 +153,11 @@ $relatedCount = 0;
             $statusLabel = ($score >= 70) ? 'CRITICAL' : (($score >= 40) ? 'ELEVATED' : 'STABLE');
             
             // Logic for the Map
-            $primaryLoc = !empty($report['localized_risks']) ? $report['localized_risks'][0]['location'] : 'Kenya';
-            $mapEmbedUrl = "https://maps.google.com/maps?q=" . urlencode($primaryLoc . ", Kenya") . "&t=&z=13&ie=UTF8&iwloc=&output=embed";
+           $primaryLoc = !empty($report['localized_risks']) 
+            ? $report['localized_risks'][0]['location'] 
+            : 'Kenya';
+
+            $mapEmbedUrl = "https://www.google.com/maps?q=" . urlencode($primaryLoc . ", Kenya") . "&output=embed";
             $mapRedirectUrl = "https://www.google.com/maps/search/?api=1&query=" . urlencode($primaryLoc . ", Kenya");
         ?>
         <div class="col-12">
@@ -145,7 +224,7 @@ $relatedCount = 0;
                                     <div class="collapse mb-3" id="map-<?= $model->id ?>">
                                         <div class="rounded-3 overflow-hidden border shadow-sm position-relative"
                                             style="height: 220px;">
-                                            <iframe width="100%" height="100%" frameborder="0" src="<?= $mapEmbedUrl ?>"
+                                            <iframe width="100%" loading="lazy" height="100%" frameborder="0" src="<?= $mapEmbedUrl ?>"
                                                 allowfullscreen></iframe>
                                             <a href="<?= $mapRedirectUrl ?>" target="_blank"
                                                 class="btn btn-primary btn-sm position-absolute bottom-0 end-0 m-2 shadow-sm fw-bold">
@@ -379,6 +458,7 @@ $relatedCount = 0;
 }
 </style>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 const spinner = document.getElementById('loading-spinner');
 const results = document.getElementById('results-container');
@@ -410,4 +490,29 @@ document.querySelectorAll('.tactical-btn').forEach(b => {
         document.getElementById('osint-search-form').dispatchEvent(new Event('submit'));
     };
 });
+
+document.addEventListener("DOMContentLoaded", function() {
+    const ctx = document.getElementById('platformChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: <?= json_encode($metrics['platformLabels']) ?>,
+            datasets: [{
+                data: <?= json_encode($metrics['platformData']) ?>,
+                backgroundColor: ['#0d6efd', '#6610f2', '#6f42c1', '#d63384', '#dc3545', '#fd7e14'],
+                hoverOffset: 10,
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20 } }
+            },
+            cutout: '70%'
+        }
+    });
+});
+
 </script>
