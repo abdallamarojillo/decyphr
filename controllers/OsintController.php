@@ -43,97 +43,208 @@ class OsintController extends Controller
     /**
      * Dashboard Main View
      */
-    public function actionIndex()
-    {
-        $role = GlobalHelper::CurrentUser('role');
-        $userId = GlobalHelper::CurrentUser('id');
+public function actionIndex()
+{
+    $role = GlobalHelper::CurrentUser('role');
+    $userId = GlobalHelper::CurrentUser('id');
 
-        $query = OsintAiAnalysis::find()->orderBy(['id' => SORT_DESC]);
-        $postQuery = OsintPost::find();
+    // --- Base Queries ---
+    $query = OsintAiAnalysis::find()->orderBy(['id' => SORT_DESC]);
+    $postQuery = OsintPost::find();
 
-        if ($role !== 'admin') {
-            $query->where(['created_by' => $userId]);
-            $postQuery->where(['created_by' => $userId]);
-        }
-
-        $osintaidata = $query->all();
-        $relatedPosts = $postQuery->all();
-
-        // --- CALCULATE NEW METRICS ---
-        $totalReports = count($osintaidata);
-        $scores = array_column($osintaidata, 'numerical_score');
-        $avgScore = $totalReports > 0 ? array_sum($scores) / $totalReports : 0;
-        
-        // Count Critical Reports (Score >= 70)
-        $criticalCount = 0;
-        foreach ($osintaidata as $m) {
-            if ((int)$m->numerical_score >= 70) $criticalCount++;
-        }
-
-        // --- AGGREGATE PLATFORM DATA ---
-        $platformCounts = [];
-        foreach ($relatedPosts as $post) {
-            // Assuming your OsintPost model has a 'platform' attribute (e.g., 'Telegram', 'X', 'Facebook')
-            $p = $post->platform ?: 'Unknown'; 
-            $platformCounts[$p] = ($platformCounts[$p] ?? 0) + 1;
-        }
-
-        return $this->render('index', [
-            'osintaidata' => $osintaidata,
-            'relatedPosts' => $relatedPosts,
-            'metrics' => [
-                'avgScore' => round($avgScore, 1),
-                'critical' => $criticalCount,
-                'totalPosts' => count($relatedPosts),
-                'platformLabels' => array_keys($platformCounts),
-                'platformData' => array_values($platformCounts),
-            ]
-        ]);
+    if ($role !== 'admin') {
+        $query->where(['created_by' => $userId]);
+        $postQuery->where(['created_by' => $userId]);
     }
+
+    $osintaidata = $query->all();
+
+    // --- Collect Request IDs for high-threat reports ---
+    $highThreatIds = [];
+    foreach ($osintaidata as $analysis) {
+        if ((int)$analysis->numerical_score >= 70) {
+            $highThreatIds[] = $analysis->request_id;
+        }
+    }
+
+    // --- Related Posts ---
+    $relatedPosts = [];
+    if (!empty($highThreatIds)) {
+        $relatedPosts = OsintPost::find()
+            ->where(['request_id' => $highThreatIds])
+            ->all();
+    }
+
+    // --- Metrics ---
+    $totalReports = count($osintaidata);
+    $scores = array_column($osintaidata, 'numerical_score');
+    $avgScore = $totalReports > 0 ? array_sum($scores) / $totalReports : 0;
+    $criticalCount = count($highThreatIds);
+
+    // --- Platform aggregation ---
+    $platformCounts = [];
+    foreach ($relatedPosts as $post) {
+        $p = $post->platform ?: 'Unknown';
+        $platformCounts[$p] = ($platformCounts[$p] ?? 0) + 1;
+    }
+
+    // --- Location aggregation ---
+    $locationStats = [];
+    foreach ($osintaidata as $analysis) {
+        if (empty($analysis->report)) continue;
+        $report = json_decode($analysis->report, true);
+        if (!is_array($report)) continue;
+
+        $score = (int)$analysis->numerical_score;
+
+        if (!empty($report['localized_risks']) && is_array($report['localized_risks'])) {
+            foreach ($report['localized_risks'] as $risk) {
+                if (empty($risk['location'])) continue;
+                $loc = trim($risk['location']);
+                if (!isset($locationStats[$loc])) {
+                    $locationStats[$loc] = ['count' => 0, 'max_score' => 0];
+                }
+                $locationStats[$loc]['count']++;
+                $locationStats[$loc]['max_score'] = max($locationStats[$loc]['max_score'], $score);
+            }
+        }
+    }
+
+    uasort($locationStats, fn($a, $b) => $b['count'] <=> $a['count']);
+    $topLocations = array_slice($locationStats, 0, 5, true); // still top 5 by location frequency
+
+    // --- USER MAPPING: Count number of high-threat posts per user ---
+    $userMap = [];
+    foreach ($relatedPosts as $post) {
+        if (empty($post->author)) continue;
+        $author = trim($post->author);
+        $platform = $post->platform ?: 'Unknown';
+        $userMap[$author]['count'] = ($userMap[$author]['count'] ?? 0) + 1;
+        $userMap[$author]['platforms'][] = $platform;
+    }
+
+    // Sort users by number of high-threat posts DESC
+    uasort($userMap, fn($a, $b) => $b['count'] <=> $a['count']);
+
+    return $this->render('index', [
+        'osintaidata' => $osintaidata,
+        'relatedPosts' => $relatedPosts,
+        'topLocations' => $topLocations,
+        'userMap' => $userMap, // all users with counts, sorted
+        'metrics' => [
+            'avgScore' => round($avgScore, 1),
+            'critical' => $criticalCount,
+            'totalPosts' => count($relatedPosts),
+            'platformLabels' => array_keys($platformCounts),
+            'platformData' => array_values($platformCounts),
+        ]
+    ]);
+}
 
 public function actionCritical()
 {
     $role = GlobalHelper::CurrentUser('role');
     $userId = GlobalHelper::CurrentUser('id');
 
-    // 1. Set up the base query for high-risk scores (>= 70)
-    $query = OsintAiAnalysis::find()
+    // --- Base Queries ---
+     $query = OsintAiAnalysis::find()
         ->where(['>=', 'numerical_score', 70])
         ->orderBy(['numerical_score' => SORT_DESC, 'id' => SORT_DESC]);
 
-    // 2. Apply Role-based Security
+    $postQuery = OsintPost::find();
+
     if ($role !== 'admin') {
-        $query->andWhere(['created_by' => $userId]);
+        $query->where(['created_by' => $userId]);
+        $postQuery->where(['created_by' => $userId]);
     }
 
     $osintaidata = $query->all();
 
-    // 3. Fetch Related Posts only for these specific critical reports
-    // This prevents loading thousands of unrelated posts into memory
-    $requestIds = \yii\helpers\ArrayHelper::getColumn($osintaidata, 'request_id');
+    // --- Collect Request IDs for high-threat reports ---
+    $highThreatIds = [];
+    foreach ($osintaidata as $analysis) {
+        if ((int)$analysis->numerical_score >= 70) {
+            $highThreatIds[] = $analysis->request_id;
+        }
+    }
+
+    // --- Related Posts ---
     $relatedPosts = [];
-    
-    if (!empty($requestIds)) {
+    if (!empty($highThreatIds)) {
         $relatedPosts = OsintPost::find()
-            ->where(['request_id' => $requestIds])
+            ->where(['request_id' => $highThreatIds])
             ->all();
     }
 
-    // 4. Reusing the index view, but showing critical
+    // --- Metrics ---
+    $totalReports = count($osintaidata);
+    $scores = array_column($osintaidata, 'numerical_score');
+    $avgScore = $totalReports > 0 ? array_sum($scores) / $totalReports : 0;
+    $criticalCount = count($highThreatIds);
+
+    // --- Platform aggregation ---
+    $platformCounts = [];
+    foreach ($relatedPosts as $post) {
+        $p = $post->platform ?: 'Unknown';
+        $platformCounts[$p] = ($platformCounts[$p] ?? 0) + 1;
+    }
+
+    // --- Location aggregation ---
+    $locationStats = [];
+    foreach ($osintaidata as $analysis) {
+        if (empty($analysis->report)) continue;
+        $report = json_decode($analysis->report, true);
+        if (!is_array($report)) continue;
+
+        $score = (int)$analysis->numerical_score;
+
+        if (!empty($report['localized_risks']) && is_array($report['localized_risks'])) {
+            foreach ($report['localized_risks'] as $risk) {
+                if (empty($risk['location'])) continue;
+                $loc = trim($risk['location']);
+                if (!isset($locationStats[$loc])) {
+                    $locationStats[$loc] = ['count' => 0, 'max_score' => 0];
+                }
+                $locationStats[$loc]['count']++;
+                $locationStats[$loc]['max_score'] = max($locationStats[$loc]['max_score'], $score);
+            }
+        }
+    }
+
+    uasort($locationStats, fn($a, $b) => $b['count'] <=> $a['count']);
+    $topLocations = array_slice($locationStats, 0, 5, true); // still top 5 by location frequency
+
+    // --- USER MAPPING: Count number of high-threat posts per user ---
+    $userMap = [];
+    foreach ($relatedPosts as $post) {
+        if (empty($post->author)) continue;
+        $author = trim($post->author);
+        $platform = $post->platform ?: 'Unknown';
+        $userMap[$author]['count'] = ($userMap[$author]['count'] ?? 0) + 1;
+        $userMap[$author]['platforms'][] = $platform;
+    }
+
+    // Sort users by number of high-threat posts DESC
+    uasort($userMap, fn($a, $b) => $b['count'] <=> $a['count']);
+
     return $this->render('index', [
         'osintaidata' => $osintaidata,
         'relatedPosts' => $relatedPosts,
-        'isCriticalView' => true, // Useful for adding a "Filtered by Critical" badge in the view
+        'topLocations' => $topLocations,
+        'isCriticalView' => true, 
+        'userMap' => $userMap, // all users with counts, sorted
         'metrics' => [
-            'avgScore' => count($osintaidata) > 0 ? round(array_sum(array_column($osintaidata, 'numerical_score')) / count($osintaidata), 1) : 0,
-            'critical' => count($osintaidata),
+            'avgScore' => round($avgScore, 1),
+            'critical' => $criticalCount,
             'totalPosts' => count($relatedPosts),
-            // We pass empty platform arrays or re-calculate if needed
-            'platformLabels' => [], 
-            'platformData' => [],
+            'platformLabels' => array_keys($platformCounts),
+            'platformData' => array_values($platformCounts),
         ]
     ]);
 }
+
+
+
 
     /**
      * Main OSINT Fetch - Provides data for the primary analysis UI

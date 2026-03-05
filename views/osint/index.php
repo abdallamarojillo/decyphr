@@ -91,7 +91,7 @@ $relatedCount = 0;
 </div>
 
 <div class="row">
-    <div class="col-md-4 mb-4">
+    <div class="col-md-12 mb-4">
         <div class="card border-0 shadow-sm rounded-4 h-100">
             <div class="card-header bg-transparent border-0 pt-4 px-4">
                 <h5 class="fw-bold mb-0">Platform Distribution</h5>
@@ -100,6 +100,117 @@ $relatedCount = 0;
             <div class="card-body px-4 pb-4">
                 <div style="max-height: 300px;">
                     <canvas id="platformChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-5">
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-body p-0">
+                <div class="p-4 border-bottom">
+                    <h5 class="fw-bold mb-0"><i class="bi bi-geo-alt-fill text-danger me-2"></i>Geospatial Hotspots</h5>
+                    <small class="text-muted">Areas with highest frequency of critical signals</small>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light">
+                            <tr>
+                                <th class="ps-4 border-0">Location</th>
+                                <th class="border-0">Alert Count</th>
+                                <th class="border-0">Max Risk</th>
+                                <th class="pe-4 border-0 text-end">Map</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        <?php if (!empty($topLocations)): ?>
+                            <?php foreach ($topLocations as $name => $data): ?>
+                            <tr>
+                                <td class="ps-4 fw-bold"><?= Html::encode($name) ?></td>
+                                <td>
+                                    <span class="badge bg-dark rounded-pill">
+                                        <?= $data['count'] ?> Reports
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="progress" style="height: 6px; width: 100px;">
+                                        <div class="progress-bar bg-<?= $data['max_score'] >= 70 ? 'danger' : 'warning' ?>" 
+                                            style="width: <?= $data['max_score'] ?>%">
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="pe-4 text-end">
+                                    <a href="https://www.google.com/maps/search/<?= urlencode($name . ', Kenya') ?>" 
+                                    target="_blank" 
+                                    class="btn btn-sm btn-light border">
+                                        <i class="bi bi-map"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <tr>
+                                <td colspan="4" class="text-center text-muted py-4">
+                                    No critical locations detected.
+                                </td>
+                            </tr>
+                        <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <!-- Entity Mapping Table -->
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-3"><i class="bi bi-people-fill text-primary me-2"></i>Entity Mapping</h5>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0 user-mapping-table">
+                        <thead class="bg-light">
+                            <tr>
+                                <th class="ps-4 border-0">User</th>
+                                <th class="border-0">High-Threat Posts</th>
+                                <th class="border-0">Activity</th>
+                                <th class="border-0">Platforms</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        <?php if (!empty($userMap)): ?>
+                            <?php foreach ($userMap as $user => $data): ?>
+                            <tr>
+                                <td class="ps-4 fw-bold"><?= Html::encode($user) ?></td>
+                                <td>
+                                    <span class="badge bg-danger rounded-pill"><?= $data['count'] ?></span>
+                                </td>
+                                <td>
+                                    <div class="progress" style="height: 6px; min-width: 100px;">
+                                        <?php
+                                        // calculate relative width for progress (max = highest count)
+                                        $maxCount = max(array_column($userMap, 'count'));
+                                        $width = $maxCount > 0 ? ($data['count'] / $maxCount) * 100 : 0;
+                                        ?>
+                                        <div class="progress-bar bg-danger" style="width: <?= $width ?>%"></div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <?= implode(', ', array_unique($data['platforms'])) ?>
+                                </td>
+                            </tr>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <tr>
+                                <td colspan="4" class="text-center text-muted py-4">
+                                    No entity mapping available.
+                                </td>
+                            </tr>
+                        <?php endif; ?>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -513,6 +624,15 @@ document.addEventListener("DOMContentLoaded", function() {
             cutout: '70%'
         }
     });
+
+    $('.user-mapping-table').DataTable({
+        pageLength: 5,
+        lengthMenu: [[5, 10, 25, 50, -1], [5, 10, 25, 50, "All"]],
+        dom: 'Bfrtip', // Defines the placement of buttons and table elements
+        buttons: ['excel', 'pdf']
+    });
 });
+
+
 
 </script>
