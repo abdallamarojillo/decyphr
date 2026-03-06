@@ -28,26 +28,87 @@ class GlobalOSINTAnalyzer extends Component
     }
 
     private function saveAiAnalysis($requestId, $keyword, array $aiAnalysis)
-{
-    $model = new OsintAiAnalysis();
+    {
+        
+        $model = OsintAiAnalysis::find()->where(['request_id' => $requestId])->one();
 
-    $model->request_id = $requestId;
-    $model->keyword = $keyword;
-    $model->summary = $aiAnalysis['threat_summary'] ?? '';
-    $model->numerical_score = $aiAnalysis['numerical_score'] ?? 0;
-    $model->report = json_encode($aiAnalysis, JSON_UNESCAPED_UNICODE);
-    $model->analyzed_at = date('Y-m-d H:i:s');
-    $model->created_by = GlobalHelper::CurrentUser('id');
+        if($model == null)
+        {
+            $model = new OsintAiAnalysis();
+        }
+    
+        $model->request_id = $requestId;
+        $model->keyword = $keyword;
+        $model->summary = $aiAnalysis['threat_summary'] ?? '';
+        $model->numerical_score = $aiAnalysis['numerical_score'] ?? 0;
+        $model->report = json_encode($aiAnalysis, JSON_UNESCAPED_UNICODE);
+        $model->analyzed_at = date('Y-m-d H:i:s');
+        $model->created_by = GlobalHelper::CurrentUser('id');
 
-    if (!$model->save()) {
-        Log::log(
-            'OSINT AI Analysis Save Failed',
-            'Failed saving AI analysis',
-            LogType::ERROR,
-            $model->errors
-        );
+        if (!$model->save()) {
+            Log::log(
+                'OSINT AI Analysis Save Failed',
+                'Failed saving AI analysis',
+                LogType::ERROR,
+                $model->errors
+            );
+        }
     }
-}
+
+    /**
+     * Re-analyze existing OSINT posts for a given request_id
+     *
+     * @param string $requestId
+     * @return array
+     */
+    public function reanalyzeOsintPosts(string $requestId)
+    {
+        // 1. Fetch posts from DB
+        $posts = OsintPost::find()->where(['request_id' => $requestId])->all();
+
+        if (empty($posts)) {
+            return ['error' => 'No OSINT posts found for request_id: ' . $requestId];
+        }
+
+        // 2. Prepare $rawPlatforms structure as expected by getAiIntelligence
+        $rawPlatforms = [];
+        foreach ($posts as $post) {
+            $platform = $post->platform ?? 'unknown';
+            if (!isset($rawPlatforms[$platform])) {
+                $rawPlatforms[$platform] = ['data' => []];
+            }
+
+            $rawPlatforms[$platform]['data'][] = [
+                'text'       => $post->text,
+                'author'     => $post->author,
+                'created_at' => $post->created_at,
+                'location'   => $post->location ?? 'N/A',
+            ];
+        }
+
+        $keyword = $posts[0]->keyword ?? 'Unknown';
+
+        // 3. Call private AI function internally
+        $aiAnalysis = $this->getAiIntelligence($keyword, $rawPlatforms);
+
+        // 4. Save new AI analysis
+        $this->saveAiAnalysis($requestId, $keyword, $aiAnalysis);
+
+        // 5. Update posts with new AI analysis and threat score
+        foreach ($posts as $post) {
+            $post->ai_report = json_encode($aiAnalysis, JSON_UNESCAPED_UNICODE);
+            $post->threat_score = $aiAnalysis['numerical_score'] ?? 0;
+            $post->save(false);
+        }
+
+        return [
+            'keyword'      => $keyword,
+            'timestamp'    => date('Y-m-d H:i:s'),
+            'platforms'    => $rawPlatforms,
+            'ai_report'    => $aiAnalysis,
+            'threat_score' => $aiAnalysis['numerical_score'] ?? 0,
+        ];
+    }
 
 public function fetchGlobalOSINTData($keyword)
 {

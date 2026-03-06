@@ -290,7 +290,7 @@ $relatedCount = 0;
                     $form = ActiveForm::begin([
                         'id' => 'resubmit-analysis',
                         'options' => ['class' => 'p-3'],
-                        'action' => 'resubmit-analysis'
+                        'action' => ['reanalyze', 'request_id' => $osintaidata[0]['request_id']]
                     ]); ?>
                     <input type="hidden" name="request_id" value="<?= $osintaidata[0]['request_id'] ?>">
 

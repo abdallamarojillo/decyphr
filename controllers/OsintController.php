@@ -420,6 +420,13 @@ class OsintController extends Controller
      * Main OSINT Fetch - Provides data for the primary analysis UI
      */
 
+    public function actionPost()
+    {
+        $request_id = '69a96bd012dff';
+        $model = OsintPost::find()->where(['request_id' => $request_id])->limit(2)->one();
+        print_r($model);
+    }
+
     public function actionFetch()
     {
         Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
@@ -559,6 +566,46 @@ class OsintController extends Controller
             Yii::$app->session->setFlash('error', 'Failed to update threat score.');
         }
 
+        return $this->redirect(['view', 'request_id' => $request_id]);
+    }
+
+
+    /**
+     * Re-analyze existing OSINT posts for a given request_id
+     * POST parameter: request_id
+     */
+    public function actionReanalyze($request_id)
+    {
+        try {
+            $analyzer = Yii::$app->globalOSINTAnalyzer;
+
+            $result = $analyzer->reanalyzeOsintPosts($request_id);
+
+            if (isset($result['error'])) {
+                Yii::$app->session->setFlash('error', 'Re-analysis failed: ' . $result['error']);
+            } else {
+                Yii::$app->session->setFlash('success', 'OSINT posts successfully re-analyzed.');
+
+                Log::log(
+                    'OSINT Re-analysis',
+                    'Resubmitted OSINT Data for Reanalysis',
+                    LogType::API,
+                    ['request_id' => $request_id]
+                );
+
+            }
+
+        } catch (\Exception $e) {
+            Yii::$app->session->setFlash('error', 'Re-analysis failed: ' . $e->getMessage());
+            Log::log(
+                'OSINT Re-analysis Failed',
+                'Error: ' . $e->getMessage(),
+                LogType::ERROR,
+                ['request_id' => $request_id]
+            );
+        }
+
+        // Redirect back to your view page
         return $this->redirect(['view', 'request_id' => $request_id]);
     }
 
