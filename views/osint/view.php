@@ -273,6 +273,45 @@ $relatedCount = 0;
 
     <?php ActiveForm::end(); ?>
 
+<div class="row g-0">
+    <div class="col-12">
+        <div class="card border-dashed border-2 bg-light rounded-4 border-secondary-subtle">
+            <div class="card-body p-4 text-center">
+                <div class="mb-3">
+                    <span class="fs-2 fal fa-user-clock"></span>
+                </div>
+                <h6 class="fw-bold text-dark mb-2">Unsure of the current AI analysis?</h6>
+                <p class="text-muted small mb-4 px-md-5">
+                    If the source data has changed or the initial scan feels incomplete, you can trigger a 
+                    <strong>Re-Analysis</strong>. The AI will perform a fresh pass on all available metadata.
+                </p>
+
+                    <?php  
+                    $form = ActiveForm::begin([
+                        'id' => 'resubmit-analysis',
+                        'options' => ['class' => 'p-3'],
+                        'action' => 'resubmit-analysis'
+                    ]); ?>
+                    <input type="hidden" name="request_id" value="<?= $osintaidata[0]['request_id'] ?>">
+
+                    <div class="text-center">
+                        <button type="submit" class="btn btn-outline-primary rounded-pill px-4 py-2 fw-semibold">
+                            <i class="fal fa-history"></i> RESUBMIT FOR DEEP ANALYSIS
+                        </button>
+                    </div>
+
+                     <?php ActiveForm::end(); ?>
+
+                <div class="mt-3">
+                    <small class="text-muted italic" style="font-size: 0.75rem;">
+                        <i class="bi bi-info-circle me-1"></i> This process usually takes 10-15 seconds.
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
     <div id="results-container" class="row g-4">
         <?php foreach ($osintaidata as $model): 
             $report = Json::decode($model->report);
@@ -571,6 +610,35 @@ $(document).on('beforeSubmit', '[id^="delete-osint-post-form-"]', function(e) {
         confirmButtonColor: '#d33',
         cancelButtonColor: '#6c757d',
         confirmButtonText: 'YES, EXCLUDE IT'
+    }).then((result) => {
+
+        if (result.isConfirmed) {
+            form.off('beforeSubmit'); 
+            form[0].submit();
+        }
+
+    });
+
+    return false;
+});
+
+
+/* =========================
+   Resubmit Analysis Confirm
+   ========================= */
+$(document).on('beforeSubmit', '#resubmit-analysis', function(e) {
+
+    e.preventDefault();
+
+    let form  = $(this);
+
+    Swal.fire({
+        title: 'Confirm Resubmission',
+        text: 'Resubmit this data for AI Analysis?  ',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'YES, RESUBMIT',
+        cancelButtonText: 'Cancel'
     }).then((result) => {
 
         if (result.isConfirmed) {
