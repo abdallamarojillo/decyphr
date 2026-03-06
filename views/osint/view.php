@@ -486,7 +486,7 @@ $relatedCount = 0;
                                         <div class="card-footer">
                                             <?php 
                                             $form = ActiveForm::begin([
-                                                'id' => 'delete-osint-post-form',
+                                                'id' => 'delete-osint-post-form-'.$post->id,
                                                 'layout' => 'default',
                                                 'action' => 'delete-osint-post'
                                             ]);
@@ -557,7 +557,7 @@ $(document).on('beforeSubmit', '#risk-score-form', function(e) {
 /* =========================
    Delete OSINT Post Confirm
    ========================= */
-$(document).on('beforeSubmit', '#delete-osint-post-form', function(e) {
+$(document).on('beforeSubmit', '[id^="delete-osint-post-form-"]', function(e) {
 
     e.preventDefault();
 

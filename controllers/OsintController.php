@@ -392,10 +392,10 @@ class OsintController extends Controller
 
         if ($model->delete()) {
 
-            Log::log(
+             Log::log(
                 'Human in the Loop (HITL) Action',
-                'Manually deleted osint data for request ID: ' . $request_id .''.
-                LogType::RECORD_CHANGE,
+                'Manually deleted osint data for request ID: ' . $request_id,
+                LogType::RECORD_DELETE,
                 [
                     'request_id' => $request_id,
                     'keyword' => $keyword,
