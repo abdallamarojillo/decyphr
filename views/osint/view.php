@@ -422,8 +422,6 @@ $relatedCount = 0;
                                 View Related Posts <i class="bi bi-arrow-right-short"></i>
                             </button>
 
-                            <a href="<?= Url::to(['view',['request_id' => $model->request_id]]) ?>"
-                                class="btn btn-dark rounded-pill float-end">View Details</a>
 
                         </div>
                     </div>
