@@ -21,7 +21,7 @@ $this->title = 'Verify OTP';
         <div class="text-center mb-4">
             <h3 class="fw-bold text-dark mb-2">Two-Factor Auth</h3>
             <p class="text-muted small px-3">
-                We've sent a 6-digit verification code to your registered devices.
+                We've sent a 6-digit verification code to your registered email and phone.
             </p>
         </div>
 
