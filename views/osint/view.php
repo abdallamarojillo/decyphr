@@ -585,6 +585,7 @@ $(document).on('beforeSubmit', '#risk-score-form', function(e) {
         if (result.isConfirmed) {
             form.off('beforeSubmit'); 
             form[0].submit();
+            $(this).block({ message: 'Processing..' });
         }
 
     });
@@ -615,6 +616,7 @@ $(document).on('beforeSubmit', '[id^="delete-osint-post-form-"]', function(e) {
         if (result.isConfirmed) {
             form.off('beforeSubmit'); 
             form[0].submit();
+            $(this).block({ message: 'Processing..' });
         }
 
     });
@@ -644,6 +646,7 @@ $(document).on('beforeSubmit', '#resubmit-analysis', function(e) {
         if (result.isConfirmed) {
             form.off('beforeSubmit'); 
             form[0].submit();
+            $(this).block({ message: 'Processing..' });
         }
 
     });

@@ -25,6 +25,7 @@ class AppAsset extends AssetBundle
         'https://cdn.datatables.net/v/bs5/jszip-3.10.1/dt-2.3.7/af-2.7.1/b-3.2.6/b-colvis-3.2.6/b-html5-3.2.6/b-print-3.2.6/cr-2.1.2/cc-1.2.1/date-1.6.3/fc-5.0.5/fh-4.0.6/kt-2.12.2/r-3.0.8/rg-1.6.0/rr-1.5.1/sc-2.4.3/sb-1.8.4/sp-2.3.5/sl-3.1.3/sr-1.4.3/datatables.min.js',
         'https://cdn.jsdelivr.net/npm/sweetalert2@11',
         'https://cdn.jsdelivr.net/npm/chart.js',
+        'https://cdnjs.cloudflare.com/ajax/libs/jquery.blockUI/2.70/jquery.blockUI.min.js',
         '/js/cryptanalysis.js'
     ];
     public $depends = [
