@@ -247,12 +247,14 @@ $relatedCount = 0;
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <span class="badge bg-white text-dark border shadow-sm px-2">Safe</span>
                     <div class="text-center">
-                        <span id="rangescorevalue" class="display-6 fw-bold text-primary"> <?= $osintaidata[0]['numerical_score'] ?> %</span>
+                        <span id="rangescorevalue" class="display-6 fw-bold text-primary">
+                            <?= $osintaidata[0]['numerical_score'] ?> %</span>
                     </div>
                     <span class="badge bg-white text-dark border shadow-sm px-2">High</span>
                 </div>
 
-                <input type="range" name="threat_score" class="form-range" min="0" max="100" value="<?= $osintaidata[0]['numerical_score'] ?>" id="rangescore"
+                <input type="range" name="threat_score" class="form-range" min="0" max="100"
+                    value="<?= $osintaidata[0]['numerical_score'] ?>" id="rangescore"
                     oninput="updateRiskUI(this.value)">
 
                 <div class="d-flex justify-content-between mt-2">
@@ -262,10 +264,10 @@ $relatedCount = 0;
             </div>
 
             <div class="text-center">
-            <button type="submit" class="btn btn-dark rounded-pill px-5 py-2 fw-bold shadow-sm border-0">
-                UPDATE RATING
-            </button>
-        </div>
+                <button type="submit" class="btn btn-dark rounded-pill px-5 py-2 fw-bold shadow-sm border-0">
+                    UPDATE RATING
+                </button>
+            </div>
         </div>
     </div>
 
@@ -417,10 +419,14 @@ $relatedCount = 0;
                                 </div>
                             </div>
 
-                            <button type="button" class="btn btn-outline-dark btn-sm rounded-pill px-4"
-                                data-bs-toggle="modal" data-bs-target="#modal-<?= $model->request_id ?>">
-                                View Related Posts <i class="bi bi-arrow-right-short"></i>
-                            </button>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <button type="button" class="btn btn-outline-dark btn-sm rounded-pill px-4"
+                                        data-bs-toggle="modal" data-bs-target="#modal-<?= $model->request_id ?>">
+                                        View Related Posts <i class="bi bi-arrow-right-short"></i>
+                                    </button>
+                                </div>
+                            </div>
 
 
                         </div>
@@ -477,6 +483,24 @@ $relatedCount = 0;
                                                     <?= $engagement['comments'] ?? 0 ?></span>
                                             </div>
                                         </div>
+                                        <div class="card-footer">
+                                            <?php 
+                                            $form = ActiveForm::begin([
+                                                'id' => 'delete-osint-post-form',
+                                                'layout' => 'default',
+                                                'action' => 'delete-osint-post'
+                                            ]);
+                                            ?>
+                                            <input type="hidden" name="id" value="<?= $post->id ?>">
+                                            <input type="hidden" name="request_id" value="<?= $post->request_id ?>">
+                                            <div class="d-flex align-items-center">
+                                                <button class="btn btn-danger rounded-pill"> Exclude</button>
+                                                <small class="text-muted ms-1">
+                                                    This will exclude this post from analysis results.
+                                                </small>
+                                            </div>
+                                            <?php ActiveForm::end(); ?>
+                                        </div>
                                     </div>
                                 </div>
                                 <?php endif; endforeach; ?>
@@ -500,23 +524,60 @@ $relatedCount = 0;
 <?php
 $js = <<<JS
 
-$('#risk-score-form').on('beforeSubmit', function (e) {
+/* =========================
+   Risk Score Update Confirm
+   ========================= */
+$(document).on('beforeSubmit', '#risk-score-form', function(e) {
 
     e.preventDefault();
 
-    let form = $(this);
+    let form  = $(this);
     let score = $('#rangescore').val();
 
     Swal.fire({
         title: 'Confirm Rating Update',
-        text: "Set score to " + score + "%?",
+        text: 'Set score to ' + score + '%?',
         icon: 'warning',
         showCancelButton: true,
+        confirmButtonText: 'YES, UPDATE RATING',
+        cancelButtonText: 'Cancel'
     }).then((result) => {
+
         if (result.isConfirmed) {
-            form.off('beforeSubmit'); // remove handler
-            form.submit();
+            form.off('beforeSubmit'); 
+            form[0].submit();
         }
+
+    });
+
+    return false;
+});
+
+
+/* =========================
+   Delete OSINT Post Confirm
+   ========================= */
+$(document).on('beforeSubmit', '#delete-osint-post-form', function(e) {
+
+    e.preventDefault();
+
+    let form = $(this);
+
+    Swal.fire({
+        title: 'Are you sure?',
+        text: 'This post will be excluded from analysis results.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'YES, EXCLUDE IT'
+    }).then((result) => {
+
+        if (result.isConfirmed) {
+            form.off('beforeSubmit'); 
+            form[0].submit();
+        }
+
     });
 
     return false;
@@ -527,99 +588,10 @@ JS;
 $this->registerJs($js);
 ?>
 
-<style>
-/* CORE AESTHETICS */
-:root {
-    --osint-blue: #0d6efd;
-    --osint-bg: #f8f9fa;
-}
-
-.tracking-tight {
-    letter-spacing: -0.02em;
-}
-
-.fw-black {
-    font-weight: 900;
-}
-
-.rotate-text {
-    writing-mode: vertical-lr;
-    transform: rotate(180deg);
-    font-size: 0.65rem;
-    letter-spacing: 1px;
-}
-
-.card {
-    transition: all 0.3s ease;
-}
-
-.card:hover {
-    box-shadow: 0 1rem 3rem rgba(0, 0, 0, .1) !important;
-}
-
-/* MAP & NAV ELEMENTS */
-.x-small {
-    font-size: 0.65rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.list-group-item:hover {
-    background-color: rgba(0, 0, 0, 0.02) !important;
-}
-
-/* COMPACT COMPONENTS */
-.report-counter {
-    background: #fff;
-    border-radius: 12px;
-    min-width: 140px;
-    border: 1px solid #e9ecef !important;
-}
-
-.modern-pill {
-    border-radius: 50px !important;
-    padding: 6px 16px !important;
-    font-weight: 600 !important;
-    font-size: 0.7rem !important;
-    text-transform: uppercase;
-}
-
-.search-container {
-    background: #fff;
-    border: 1px solid #dee2e6;
-    border-radius: 16px;
-    overflow: hidden;
-}
-
-.search-container:focus-within {
-    border-color: var(--osint-blue);
-    box-shadow: 0 8px 30px rgba(13, 110, 253, 0.12) !important;
-}
-
-.scan-button {
-    border-radius: 10px !important;
-    margin: 4px;
-}
-
-.bg-danger-subtle {
-    background-color: #f8d7da;
-}
-
-.bg-warning-subtle {
-    background-color: #fff3cd;
-}
-
-.bg-success-subtle {
-    background-color: #d1e7dd;
-}
-</style>
 
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <script>
-
-
 document.addEventListener("DOMContentLoaded", function() {
     const ctx = document.getElementById('platformChart').getContext('2d');
     new Chart(ctx, {
@@ -661,9 +633,10 @@ document.addEventListener("DOMContentLoaded", function() {
         ],
         dom: 'Bfrtip',
         buttons: ['excel', 'pdf'],
-        columnDefs: [
-            { targets: '_all', defaultContent: '' }
-        ]
+        columnDefs: [{
+            targets: '_all',
+            defaultContent: ''
+        }]
     });
 });
 
@@ -683,7 +656,4 @@ function updateRiskUI(val) {
         badge.className = "badge rounded-pill bg-danger px-3 py-2";
     }
 }
-
-
-
 </script>
