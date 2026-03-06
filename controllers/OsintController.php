@@ -253,7 +253,7 @@ public function actionView($request_id)
 
     // --- Base Queries ---
     $query = OsintAiAnalysis::find()->where(['request_id' => $request_id]);
-    $postQuery = OsintPost::find();
+    $postQuery = OsintPost::find()->where(['request_id' => $request_id]);
 
     if ($role !== 'admin') {
         $query->andWhere(['created_by' => $userId]);
@@ -261,9 +261,9 @@ public function actionView($request_id)
     }
 
     $osintaidata = $query->all();
+    $relatedPosts = $postQuery->all();
 
-    if($osintaidata == null)
-    {
+    if ($osintaidata == null) {
         throw new NotFoundHttpException('The requested data is not available');
     }
 
@@ -273,14 +273,6 @@ public function actionView($request_id)
         if ((int)$analysis->numerical_score >= 70) {
             $highThreatIds[] = $analysis->request_id;
         }
-    }
-
-    // --- Related Posts ---
-    $relatedPosts = [];
-    if (!empty($highThreatIds)) {
-        $relatedPosts = OsintPost::find()
-            ->where(['request_id' => $highThreatIds])
-            ->all();
     }
 
     // --- Metrics ---
@@ -299,46 +291,71 @@ public function actionView($request_id)
     // --- Location aggregation ---
     $locationStats = [];
     foreach ($osintaidata as $analysis) {
-        if (empty($analysis->report)) continue;
+
+        if (empty($analysis->report)) {
+            continue;
+        }
+
         $report = json_decode($analysis->report, true);
-        if (!is_array($report)) continue;
+        if (!is_array($report)) {
+            continue;
+        }
 
         $score = (int)$analysis->numerical_score;
 
         if (!empty($report['localized_risks']) && is_array($report['localized_risks'])) {
             foreach ($report['localized_risks'] as $risk) {
-                if (empty($risk['location'])) continue;
-                $loc = trim($risk['location']);
-                if (!isset($locationStats[$loc])) {
-                    $locationStats[$loc] = ['count' => 0, 'max_score' => 0];
+
+                if (empty($risk['location'])) {
+                    continue;
                 }
+
+                $loc = trim($risk['location']);
+
+                if (!isset($locationStats[$loc])) {
+                    $locationStats[$loc] = [
+                        'count' => 0,
+                        'max_score' => 0
+                    ];
+                }
+
                 $locationStats[$loc]['count']++;
                 $locationStats[$loc]['max_score'] = max($locationStats[$loc]['max_score'], $score);
             }
         }
     }
 
-    uasort($locationStats, fn($a, $b) => $b['count'] <=> $a['count']);
-    $topLocations = array_slice($locationStats, 0, 5, true); // still top 5 by location frequency
+    uasort($locationStats, function ($a, $b) {
+        return $b['count'] <=> $a['count'];
+    });
 
-    // --- USER MAPPING: Count number of high-threat posts per user ---
+    $topLocations = array_slice($locationStats, 0, 5, true);
+
+    // --- USER MAPPING ---
     $userMap = [];
+
     foreach ($relatedPosts as $post) {
-        if (empty($post->author)) continue;
+
+        if (empty($post->author)) {
+            continue;
+        }
+
         $author = trim($post->author);
         $platform = $post->platform ?: 'Unknown';
+
         $userMap[$author]['count'] = ($userMap[$author]['count'] ?? 0) + 1;
         $userMap[$author]['platforms'][] = $platform;
     }
 
-    // Sort users by number of high-threat posts DESC
-    uasort($userMap, fn($a, $b) => $b['count'] <=> $a['count']);
+    uasort($userMap, function ($a, $b) {
+        return $b['count'] <=> $a['count'];
+    });
 
     return $this->render('view', [
         'osintaidata' => $osintaidata,
         'relatedPosts' => $relatedPosts,
         'topLocations' => $topLocations,
-        'userMap' => $userMap, // all users with counts, sorted
+        'userMap' => $userMap,
         'metrics' => [
             'avgScore' => round($avgScore, 1),
             'critical' => $criticalCount,
