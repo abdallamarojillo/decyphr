@@ -508,7 +508,7 @@ $relatedCount = 0;
 
                                         <?php foreach ($analysisList as $analysis): ?>
                                         <div class="row g-4">
-                                            <div class="col-md-6">
+                                            <div class="col-md-12 mt-2">
                                                 <label
                                                     class="text-info small text-uppercase fw-bold d-block mb-2">Evidence
                                                     & Indicators</label>
@@ -527,7 +527,7 @@ $relatedCount = 0;
                                                     </ul>
                                                 </div>
                                             </div>
-                                            <div class="col-md-6">
+                                            <div class="col-md-12 mt-2">
                                                 <label class="text-info small text-uppercase fw-bold d-block mb-2">Logic
                                                     & Uncertainty</label>
                                                 <p class="small mb-3"><strong>Rules:</strong>
@@ -549,6 +549,86 @@ $relatedCount = 0;
                                     </div>
                                 </div>
                             </div>
+                            <?php endif; ?>
+
+                            <?php
+$actions = $report['recommended_interventions'] ?? [];
+
+if (!is_array($actions)) {
+    $actions = [$actions];
+}
+?>
+
+                            <?php if (!empty($actions)): ?>
+
+                            <div class="row g-4 mb-4 mt-4">
+
+                                <div class="col-md-12">
+
+                                    <div class="p-4 rounded-4 border bg-white shadow-sm">
+
+                                        <h6 class="text-uppercase fw-bold text-muted small mb-3">
+                                            Recommended Interventions
+                                        </h6>
+
+                                        <div class="list-group list-group-flush">
+
+                                            <?php foreach ($actions as $action): ?>
+
+                                            <div class="list-group-item border-0 px-0">
+
+                                                <div class="d-flex justify-content-between align-items-start">
+
+                                                    <div>
+
+                                                        <?php if (!empty($action['action'])): ?>
+
+                                                        <p class="small text-dark mb-1">
+                                                            <?= Html::encode($action['action']) ?>
+                                                        </p>
+
+                                                        <?php endif; ?>
+
+
+                                                        <?php
+$entities = $action['responsible_entity'] ?? [];
+if (!is_array($entities)) $entities = [$entities];
+?>
+
+                                                        <?php if (!empty($entities)): ?>
+
+                                                        <small class="text-muted">
+                                                            Responsible:
+                                                            <?= Html::encode(implode(', ', $entities)) ?>
+                                                        </small>
+
+                                                        <?php endif; ?>
+
+                                                    </div>
+
+                                                    <?php if (!empty($action['priority'])): ?>
+
+                                                    <span
+                                                        class="badge rounded-pill <?= $action['priority']=='High'?'bg-danger':'bg-warning text-dark' ?>">
+                                                        <?= Html::encode($action['priority']) ?>
+                                                    </span>
+
+                                                    <?php endif; ?>
+
+                                                </div>
+
+                                            </div>
+
+                                            <?php endforeach; ?>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
                             <?php endif; ?>
 
 
