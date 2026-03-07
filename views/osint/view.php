@@ -273,18 +273,18 @@ $relatedCount = 0;
 
     <?php ActiveForm::end(); ?>
 
-<div class="row g-0">
-    <div class="col-12">
-        <div class="card border-dashed border-2 bg-light rounded-4 border-secondary-subtle">
-            <div class="card-body p-4 text-center">
-                <div class="mb-3">
-                    <span class="fs-2 fal fa-user-clock"></span>
-                </div>
-                <h6 class="fw-bold text-dark mb-2">Unsure of the current AI analysis?</h6>
-                <p class="text-muted small mb-4 px-md-5">
-                    If the source data has changed or the initial scan feels incomplete, you can trigger a 
-                    <strong>Re-Analysis</strong>. The AI will perform a fresh pass on all available metadata.
-                </p>
+    <div class="row g-0">
+        <div class="col-12">
+            <div class="card border-dashed border-2 bg-light rounded-4 border-secondary-subtle">
+                <div class="card-body p-4 text-center">
+                    <div class="mb-3">
+                        <span class="fs-2 fal fa-user-clock"></span>
+                    </div>
+                    <h6 class="fw-bold text-dark mb-2">Unsure of the current AI analysis?</h6>
+                    <p class="text-muted small mb-4 px-md-5">
+                        If the source data has changed or the initial scan feels incomplete, you can trigger a
+                        <strong>Re-Analysis</strong>. The AI will perform a fresh pass on all available metadata.
+                    </p>
 
                     <?php  
                     $form = ActiveForm::begin([
@@ -300,17 +300,17 @@ $relatedCount = 0;
                         </button>
                     </div>
 
-                     <?php ActiveForm::end(); ?>
+                    <?php ActiveForm::end(); ?>
 
-                <div class="mt-3">
-                    <small class="text-muted italic" style="font-size: 0.75rem;">
-                        <i class="bi bi-info-circle me-1"></i> This process usually takes 10-15 seconds.
-                    </small>
+                    <div class="mt-3">
+                        <small class="text-muted italic" style="font-size: 0.75rem;">
+                            <i class="bi bi-info-circle me-1"></i> This process usually takes 10-15 seconds.
+                        </small>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
     <div id="results-container" class="row g-4">
         <?php foreach ($osintaidata as $model): 
@@ -361,104 +361,198 @@ $relatedCount = 0;
 
                             <div class="row g-4 mb-4">
                                 <div class="col-md-12">
-                                    <div class="p-4 rounded-4 border bg-white shadow-lg">
+                                    <div class="p-4 rounded-4 border-0 bg-white shadow-sm mb-4">
                                         <div class="row align-items-center">
-                                            <div class="col-auto">
-                                                <div class="bg-danger-subtle text-danger p-3 rounded-circle">
-                                                    <i class="fa fa-file fs-4"></i>
+                                            <div class="col-md-8 border-end">
+                                                <div class="d-flex align-items-center mb-2">
+                                                    <div
+                                                        class="bg-primary-subtle text-primary px-3 py-2 rounded-3 me-3">
+                                                        <i class="fa fa-shield-alt fs-5"></i>
+                                                    </div>
+                                                    <h6 class="text-uppercase text-muted fw-bold small mb-0">Executive
+                                                        Summary</h6>
+                                                </div>
+                                                <div class="text-dark">
+                                                    <?= nl2br(Html::encode($report['threat_summary'] ?? 'System status nominal. No immediate threats detected.')) ?>
                                                 </div>
                                             </div>
-                                            <div class="col">
-                                                <h6 class="text-uppercase text-muted fw-bold small mb-1">Executive
-                                                    Summary</h6>
-                                                <div class="lead fs-6 text-dark">
-                                                    <?= nl2br(htmlspecialchars($report['threat_summary'] ?? 'Clean - No threats detected.')) ?>
+
+                                            <div class="col-md-4 text-center">
+                                                <?php 
+                        // Convert 10-base to 100-base if necessary
+                        $score = (float)($report['numerical_score'] ?? 0);
+                        $displayScore = $score <= 10 ? $score * 10 : $score; 
+                        $scoreColor = ($displayScore > 70) ? 'danger' : (($displayScore > 40) ? 'warning' : 'success');
+                    ?>
+                                                <h6 class="text-uppercase text-muted fw-bold small mb-3">Threat Exposure
+                                                </h6>
+                                                <div class="display-5 fw-bold text-<?= $scoreColor ?> mb-1">
+                                                    <?= $displayScore ?>%</div>
+                                                <div class="progress mt-2 mx-auto"
+                                                    style="height: 8px; width: 80%; border-radius: 10px; background-color: #f0f0f0;">
+                                                    <div class="progress-bar bg-<?= $scoreColor ?>" role="progressbar"
+                                                        style="width: <?= $displayScore ?>%"
+                                                        aria-valuenow="<?= $displayScore ?>" aria-valuemin="0"
+                                                        aria-valuemax="100"></div>
                                                 </div>
+                                                <p class="small text-muted mt-2 mb-0">Trajectory:
+                                                    <strong><?= Html::encode($report['risk_trajectory'] ?? 'Stable') ?></strong>
+                                                </p>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-md-6 border-end">
-                                    <div class="d-flex justify-content-between align-items-center mb-3">
-                                        <h6 class="text-uppercase fw-bold text-muted small mb-0">Geographic Threat
-                                            Vectors</h6>
-                                        <button class="btn btn-sm btn-outline-primary border-0" type="button"
-                                            data-bs-toggle="collapse" data-bs-target="#map-<?= $model->id ?>">
-                                            <i class="bi bi-geo-alt"></i> Toggle Map
-                                        </button>
-                                    </div>
 
-                                    <div class="collapse mb-3" id="map-<?= $model->id ?>">
-                                        <div class="rounded-3 overflow-hidden border shadow-sm position-relative"
-                                            style="height: 220px;">
-                                            <iframe width="100%" loading="lazy" height="100%" frameborder="0"
-                                                src="<?= $mapEmbedUrl ?>" allowfullscreen></iframe>
-                                            <a href="<?= $mapRedirectUrl ?>" target="_blank"
-                                                class="btn btn-primary btn-sm position-absolute bottom-0 end-0 m-2 shadow-sm fw-bold">
-                                                <i class="bi bi-cursor-fill me-1"></i> Open in Maps
-                                            </a>
+                                <div class="col-md-7">
+                                    <div class="h-100 p-4 rounded-4 border-0 bg-white shadow-sm">
+                                        <div class="d-flex justify-content-between align-items-center mb-4">
+                                            <h6 class="text-uppercase fw-bold text-muted small mb-0">Geographic Threat
+                                                Vectors</h6>
+                                            <button class="btn btn-sm btn-light border text-muted" type="button"
+                                                data-bs-toggle="collapse" data-bs-target="#map-view">
+                                                <i class="bi bi-map me-1"></i> View Map
+                                            </button>
                                         </div>
-                                    </div>
 
-                                    <?php if (!empty($report['localized_risks'])): ?>
-                                    <div class="list-group list-group-flush">
-                                        <?php foreach (array_slice($report['localized_risks'], 0, 3) as $risk): ?>
-                                        <div class="list-group-item px-0 border-0 bg-transparent mb-2">
-                                            <div class="d-flex justify-content-between">
-                                                <strong
-                                                    class="text-dark small"><?= Html::encode($risk['location']) ?></strong>
-                                                <span
-                                                    class="badge rounded-pill bg-light text-<?= $risk['severity'] == 'High' ? 'danger' : 'warning' ?> border small">
-                                                    <?= $risk['severity'] ?>
-                                                </span>
+                                        <div class="collapse mb-4" id="map-view">
+                                            <div class="rounded-4 overflow-hidden border position-relative"
+                                                style="height:250px;">
+                                                <iframe width="100%" height="100%" frameborder="0" loading="lazy"
+                                                    src="<?= $mapEmbedUrl ?>" allowfullscreen></iframe>
                                             </div>
-                                            <p class="text-muted small mb-1">
-                                                <?= Html::encode($risk['risk_description']) ?></p>
-                                            <a href="https://www.google.com/maps/search/?api=1&query=<?= urlencode($risk['location'] . ", Kenya") ?>"
-                                                target="_blank" class="text-primary x-small text-decoration-none">
-                                                <i class="bi bi-arrow-up-right-circle me-1"></i> Open to Map
-                                            </a>
                                         </div>
-                                        <?php endforeach; ?>
-                                    </div>
-                                    <?php else: ?>
-                                    <div class="alert alert-light py-2 small">No specific geographic risks identified.
-                                    </div>
-                                    <?php endif; ?>
-                                </div>
 
-                                <div class="col-md-6">
-                                    <h6 class="text-uppercase fw-bold text-muted small mb-3">Signals & Intelligence</h6>
-
-                                    <?php if (!empty($report['decoded_language'])): ?>
-                                    <div class="d-flex flex-wrap gap-2 mb-3">
-                                        <?php foreach ($report['decoded_language'] as $lang): ?>
-                                        <span class="badge bg-white text-dark border p-2 fw-normal"
-                                            title="<?= Html::encode($lang['contextual_explanation']) ?>">
-                                            <span
-                                                class="text-primary fw-bold"><?= Html::encode($lang['original_term']) ?>:</span>
-                                            <?= Html::encode($lang['decoded_meaning']) ?>
-                                        </span>
-                                        <?php endforeach; ?>
-                                    </div>
-                                    <?php endif; ?>
-
-                                    <?php if (!empty($report['location_suggestions'])): ?>
-                                    <div class="bg-light rounded p-3">
-                                        <p class="fw-bold small mb-1">Surveillance Recommendations:</p>
-                                        <ul class="list-unstyled mb-0">
-                                            <?php foreach ($report['location_suggestions'] as $loc): ?>
-                                            <li class="small text-muted mb-1">• <span
-                                                    class="text-dark fw-medium"><?= Html::encode($loc['location_name']) ?></span>:
-                                                <?= Html::encode($loc['reason']) ?></li>
+                                        <?php $risks = $report['localized_risks'] ?? []; ?>
+                                        <?php if (!empty($risks)): ?>
+                                        <div class="vstack gap-3">
+                                            <?php foreach (array_slice((array)$risks, 0, 3) as $risk): ?>
+                                            <div
+                                                class="p-3 rounded-3 border-start border-4 border-<?= ($risk['severity']=='High')?'danger':'warning' ?> bg-light-subtle">
+                                                <div class="d-flex justify-content-between align-items-start mb-1">
+                                                    <span
+                                                        class="fw-bold text-dark"><?= Html::encode($risk['location'] ?? 'Unknown') ?></span>
+                                                    <span
+                                                        class="badge bg-white text-dark border-0 shadow-sm px-2 py-1 small"><?= Html::encode($risk['severity']) ?></span>
+                                                </div>
+                                                <p class="text-muted small mb-2">
+                                                    <?= Html::encode($risk['risk_description'] ?? '') ?></p>
+                                                <a href="https://www.google.com/maps/search/?api=1&query=<?= urlencode($risk['location'].', Kenya') ?>"
+                                                    target="_blank"
+                                                    class="btn btn-link p-0 text-primary text-decoration-none small">
+                                                    <i class="bi bi-geo-alt"></i> Navigate to Location
+                                                </a>
+                                            </div>
                                             <?php endforeach; ?>
-                                        </ul>
+                                        </div>
+                                        <?php else: ?>
+                                        <div class="text-center py-5">
+                                            <i class="bi bi-shield-check text-success display-6"></i>
+                                            <p class="text-muted mt-2">No localized risks identified.</p>
+                                        </div>
+                                        <?php endif; ?>
                                     </div>
-                                    <?php endif; ?>
+                                </div>
+
+                                <div class="col-md-5">
+                                    <div class="h-100 p-4 rounded-4 border-0 bg-white shadow-sm">
+                                        <h6 class="text-uppercase fw-bold text-muted small mb-4">Signals & Intelligence
+                                        </h6>
+
+                                        <label class="d-block small fw-bold text-muted text-uppercase mb-2"
+                                            style="letter-spacing: 1px;">Decoded Terms</label>
+                                        <div class="d-flex flex-wrap gap-2 mb-4">
+                                            <?php foreach ((array)($report['decoded_language'] ?? []) as $lang): ?>
+                                            <div class="badge bg-white text-dark border fw-normal p-2 rounded-3 shadow-sm text-wrap"
+                                                title="<?= Html::encode($lang['contextual_explanation'] ?? '') ?>">
+                                                <span
+                                                    class="text-primary fw-bold"><?= Html::encode($lang['original_term'] ?? '') ?></span>
+                                                <i class="bi bi-arrow-right mx-1 text-muted"></i>
+                                                <?= Html::encode($lang['decoded_meaning'] ?? '') ?>
+                                            </div>
+                                            <?php endforeach; ?>
+                                        </div>
+
+                                        <div class="p-3 rounded-4 bg-primary-subtle border-0">
+                                            <p class="fw-bold small text-primary mb-3"><i
+                                                    class="bi bi-eye-fill me-2"></i>Surveillance Protocol</p>
+                                            <ul class="list-unstyled mb-0">
+                                                <?php foreach ((array)($report['location_suggestions'] ?? []) as $loc): ?>
+                                                <li class="small mb-2 d-flex align-items-start">
+                                                    <span class="text-primary me-2">•</span>
+                                                    <div>
+                                                        <span
+                                                            class="fw-bold text-dark d-block"><?= Html::encode($loc['location_name'] ?? '') ?></span>
+                                                        <span
+                                                            class="text-muted"><?= Html::encode($loc['reason'] ?? '') ?></span>
+                                                    </div>
+                                                </li>
+                                                <?php endforeach; ?>
+                                            </ul>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
+                            <?php $analysisList = (array)($report['analysis_basis'] ?? []); ?>
+                            <?php if (!empty($analysisList)): ?>
                             <div class="row">
+                                <div class="col-12">
+                                    <div class="p-4 rounded-4 border-0 bg-dark text-white shadow-lg">
+                                        <div class="d-flex align-items-center mb-4">
+                                            <div class="bg-white bg-opacity-10 p-2 rounded-3 me-3">
+                                                <i class="bi bi-cpu text-info fs-5"></i>
+                                            </div>
+                                            <h6 class="text-uppercase fw-bold small mb-0"
+                                                style="letter-spacing: 1.5px;">Analytical Methodology</h6>
+                                        </div>
+
+                                        <?php foreach ($analysisList as $analysis): ?>
+                                        <div class="row g-4">
+                                            <div class="col-md-6">
+                                                <label
+                                                    class="text-info small text-uppercase fw-bold d-block mb-2">Evidence
+                                                    & Indicators</label>
+                                                <p class="small text-white-50">
+                                                    <?= is_array($analysis['indicators_detected']) ? implode(' • ', $analysis['indicators_detected']) : $analysis['indicators_detected'] ?>
+                                                </p>
+
+                                                <div
+                                                    class="mt-3 bg-white bg-opacity-5 p-3 rounded-3 border-start border-info border-3">
+                                                    <i class="bi bi-quote fs-4 text-info opacity-50"></i>
+                                                    <ul class="list-unstyled small mb-0 italic">
+                                                        <?php foreach ((array)($analysis['evidence_quotes'] ?? []) as $quote): ?>
+                                                        <li class="mb-1 text-light-emphasis font-italic">
+                                                            "<?= Html::encode($quote) ?>"</li>
+                                                        <?php endforeach; ?>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="text-info small text-uppercase fw-bold d-block mb-2">Logic
+                                                    & Uncertainty</label>
+                                                <p class="small mb-3"><strong>Rules:</strong>
+                                                    <?= is_array($analysis['inference_rules_applied']) ? implode(', ', $analysis['inference_rules_applied']) : $analysis['inference_rules_applied'] ?>
+                                                </p>
+
+                                                <?php if (!empty($analysis['uncertainty_factors'])): ?>
+                                                <div
+                                                    class="p-2 px-3 rounded-3 bg-danger bg-opacity-10 border border-danger border-opacity-25">
+                                                    <span class="small text-danger fw-bold"><i
+                                                            class="bi bi-exclamation-triangle me-2"></i>Uncertainty:</span>
+                                                    <span
+                                                        class="small text-white-50"><?= is_array($analysis['uncertainty_factors']) ? implode(', ', $analysis['uncertainty_factors']) : $analysis['uncertainty_factors'] ?></span>
+                                                </div>
+                                                <?php endif; ?>
+                                            </div>
+                                        </div>
+                                        <?php endforeach; ?>
+                                    </div>
+                                </div>
+                            </div>
+                            <?php endif; ?>
+
+
+                            <div class="row mt-4">
                                 <div class="col-md-6">
                                     <button type="button" class="btn btn-outline-dark btn-sm rounded-pill px-4"
                                         data-bs-toggle="modal" data-bs-target="#modal-<?= $model->request_id ?>">

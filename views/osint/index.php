@@ -42,180 +42,179 @@ $relatedCount = 0;
     <?php endif; ?>
 
     <div class="row g-4 mb-5">
-    <div class="col-md-4">
-        <div class="card border-0 shadow-sm rounded-4 h-100">
-            <div class="card-body p-4">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <div class="bg-primary-subtle text-primary p-3 rounded-3">
-                        <i class="bi bi-activity fs-4"></i>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="bg-primary-subtle text-primary p-3 rounded-3">
+                            <i class="bi bi-activity fs-4"></i>
+                        </div>
+                        <span class="badge bg-light text-muted border">Mean Score</span>
                     </div>
-                    <span class="badge bg-light text-muted border">Mean Score</span>
+                    <h2 class="fw-black mb-1"><?= $metrics['avgScore'] ?></h2>
+                    <p class="text-muted small mb-0">Average intelligence score across all active feeds.</p>
                 </div>
-                <h2 class="fw-black mb-1"><?= $metrics['avgScore'] ?></h2>
-                <p class="text-muted small mb-0">Average intelligence score across all active feeds.</p>
             </div>
         </div>
-    </div>
 
-    <div class="col-md-4">
-        <div class="card border-0 shadow-sm rounded-4 h-100 bg-danger text-white"
-        onclick="window.location.href='<?= Url::to(['osint/critical']) ?>'" 
-         style="cursor: pointer;">
-            <div class="card-body p-4">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <div class="bg-white bg-opacity-25 p-3 rounded-3">
-                        <i class="bi bi-exclamation-octagon fs-4 text-white"></i>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm rounded-4 h-100 bg-danger text-white"
+                onclick="window.location.href='<?= Url::to(['osint/critical']) ?>'" style="cursor: pointer;">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="bg-white bg-opacity-25 p-3 rounded-3">
+                            <i class="bi bi-exclamation-octagon fs-4 text-white"></i>
+                        </div>
+                        <span class="badge bg-white bg-opacity-25 border-0">Immediate Action</span>
                     </div>
-                    <span class="badge bg-white bg-opacity-25 border-0">Immediate Action</span>
+                    <h2 class="fw-black mb-1"><?= $metrics['critical'] ?></h2>
+                    <p class="small mb-0 opacity-75">Critical threats detected requiring immediate tactical review.</p>
                 </div>
-                <h2 class="fw-black mb-1"><?= $metrics['critical'] ?></h2>
-                <p class="small mb-0 opacity-75">Critical threats detected requiring immediate tactical review.</p>
             </div>
         </div>
-    </div>
 
-    <div class="col-md-4">
-        <div class="card border-0 shadow-sm rounded-4 h-100">
-            <div class="card-body p-4">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <div class="bg-dark-subtle text-dark p-3 rounded-3">
-                        <i class="bi bi-rss fs-4"></i>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="bg-dark-subtle text-dark p-3 rounded-3">
+                            <i class="bi bi-rss fs-4"></i>
+                        </div>
+                        <span class="badge bg-light text-muted border">Data Ingress</span>
                     </div>
-                    <span class="badge bg-light text-muted border">Data Ingress</span>
-                </div>
-                <h2 class="fw-black mb-1"><?= $metrics['totalPosts'] ?></h2>
-                <p class="text-muted small mb-0">Total unique social media posts analyzed in current period.</p>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="row">
-    <div class="col-md-12 mb-4">
-        <div class="card border-0 shadow-sm rounded-4 h-100">
-            <div class="card-header bg-transparent border-0 pt-4 px-4">
-                <h5 class="fw-bold mb-0">Platform Distribution</h5>
-                <small class="text-muted">Breakdown of intelligence sources</small>
-            </div>
-            <div class="card-body px-4 pb-4">
-                <div style="max-height: 300px;">
-                    <canvas id="platformChart"></canvas>
+                    <h2 class="fw-black mb-1"><?= $metrics['totalPosts'] ?></h2>
+                    <p class="text-muted small mb-0">Total unique social media posts analyzed in current period.</p>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-<div class="row g-4 mb-5">
-    <div class="col-md-6">
-        <div class="card border-0 shadow-sm rounded-4 h-100">
-            <div class="card-body p-0">
-                <div class="p-4 border-bottom">
-                    <h5 class="fw-bold mb-0"><i class="bi bi-geo-alt-fill text-danger me-2"></i>Geospatial Hotspots</h5>
-                    <small class="text-muted">Areas with highest frequency of critical signals</small>
+    <div class="row">
+        <div class="col-md-12 mb-4">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-header bg-transparent border-0 pt-4 px-4">
+                    <h5 class="fw-bold mb-0">Platform Distribution</h5>
+                    <small class="text-muted">Breakdown of intelligence sources</small>
                 </div>
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead class="bg-light">
-                            <tr>
-                                <th class="ps-4 border-0">Location</th>
-                                <th class="border-0">Alert Count</th>
-                                <th class="border-0">Max Risk</th>
-                                <th class="pe-4 border-0 text-end">Map</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        <?php if (!empty($topLocations)): ?>
-                            <?php foreach ($topLocations as $name => $data): ?>
-                            <tr>
-                                <td class="ps-4 fw-bold"><?= Html::encode($name) ?></td>
-                                <td>
-                                    <span class="badge bg-dark rounded-pill">
-                                        <?= $data['count'] ?> Reports
-                                    </span>
-                                </td>
-                                <td>
-                                    <div class="progress" style="height: 6px; width: 100px;">
-                                        <div class="progress-bar bg-<?= $data['max_score'] >= 70 ? 'danger' : 'warning' ?>" 
-                                            style="width: <?= $data['max_score'] ?>%">
+                <div class="card-body px-4 pb-4">
+                    <div style="max-height: 300px;">
+                        <canvas id="platformChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-5">
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-body p-0">
+                    <div class="p-4 border-bottom">
+                        <h5 class="fw-bold mb-0"><i class="bi bi-geo-alt-fill text-danger me-2"></i>Geospatial Hotspots
+                        </h5>
+                        <small class="text-muted">Areas with highest frequency of critical signals</small>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="ps-4 border-0">Location</th>
+                                    <th class="border-0">Alert Count</th>
+                                    <th class="border-0">Max Risk</th>
+                                    <th class="pe-4 border-0 text-end">Map</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php if (!empty($topLocations)): ?>
+                                <?php foreach ($topLocations as $name => $data): ?>
+                                <tr>
+                                    <td class="ps-4 fw-bold"><?= Html::encode($name) ?></td>
+                                    <td>
+                                        <span class="badge bg-dark rounded-pill">
+                                            <?= $data['count'] ?> Reports
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="progress" style="height: 6px; width: 100px;">
+                                            <div class="progress-bar bg-<?= $data['max_score'] >= 70 ? 'danger' : 'warning' ?>"
+                                                style="width: <?= $data['max_score'] ?>%">
+                                            </div>
                                         </div>
-                                    </div>
-                                </td>
-                                <td class="pe-4 text-end">
-                                    <a href="https://www.google.com/maps/search/<?= urlencode($name . ', Kenya') ?>" 
-                                    target="_blank" 
-                                    class="btn btn-sm btn-light border">
-                                        <i class="bi bi-map"></i>
-                                    </a>
-                                </td>
-                            </tr>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <tr>
-                                <td colspan="4" class="text-center text-muted py-4">
-                                    No critical locations detected.
-                                </td>
-                            </tr>
-                        <?php endif; ?>
-                        </tbody>
-                    </table>
+                                    </td>
+                                    <td class="pe-4 text-end">
+                                        <a href="https://www.google.com/maps/search/<?= urlencode($name . ', Kenya') ?>"
+                                            target="_blank" class="btn btn-sm btn-light border">
+                                            <i class="bi bi-map"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                <?php endforeach; ?>
+                                <?php else: ?>
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted py-4">
+                                        No critical locations detected.
+                                    </td>
+                                </tr>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <div class="col-md-6">
-        <!-- Entity Mapping Table -->
-        <div class="card border-0 shadow-sm rounded-4 h-100">
-            <div class="card-body p-4">
-                <h5 class="fw-bold mb-3"><i class="bi bi-people-fill text-primary me-2"></i>Entity Mapping</h5>
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0 user-mapping-table">
-                        <thead class="bg-light">
-                            <tr>
-                                <th class="ps-4 border-0">User</th>
-                                <th class="border-0">High-Threat Posts</th>
-                                <th class="border-0">Activity</th>
-                                <th class="border-0">Platforms</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        <?php if (!empty($userMap)): ?>
-                            <?php foreach ($userMap as $user => $data): ?>
-                            <tr>
-                                <td class="ps-4 fw-bold"><?= Html::encode($user) ?></td>
-                                <td>
-                                    <span class="badge bg-danger rounded-pill"><?= $data['count'] ?></span>
-                                </td>
-                                <td>
-                                    <div class="progress" style="height: 6px; min-width: 100px;">
-                                        <?php
+        <div class="col-md-6">
+            <!-- Entity Mapping Table -->
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3"><i class="bi bi-people-fill text-primary me-2"></i>Entity Mapping</h5>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0 user-mapping-table">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="ps-4 border-0">User</th>
+                                    <th class="border-0">High-Threat Posts</th>
+                                    <th class="border-0">Activity</th>
+                                    <th class="border-0">Platforms</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php if (!empty($userMap)): ?>
+                                <?php foreach ($userMap as $user => $data): ?>
+                                <tr>
+                                    <td class="ps-4 fw-bold"><?= Html::encode($user) ?></td>
+                                    <td>
+                                        <span class="badge bg-danger rounded-pill"><?= $data['count'] ?></span>
+                                    </td>
+                                    <td>
+                                        <div class="progress" style="height: 6px; min-width: 100px;">
+                                            <?php
                                         // calculate relative width for progress (max = highest count)
                                         $maxCount = max(array_column($userMap, 'count'));
                                         $width = $maxCount > 0 ? ($data['count'] / $maxCount) * 100 : 0;
                                         ?>
-                                        <div class="progress-bar bg-danger" style="width: <?= $width ?>%"></div>
-                                    </div>
-                                </td>
-                                <td>
-                                    <?= implode(', ', array_unique($data['platforms'])) ?>
-                                </td>
-                            </tr>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <tr>
-                                <td colspan="4" class="text-center text-muted py-4">
-                                    No entity mapping available.
-                                </td>
-                            </tr>
-                        <?php endif; ?>
-                        </tbody>
-                    </table>
+                                            <div class="progress-bar bg-danger" style="width: <?= $width ?>%"></div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <?= implode(', ', array_unique($data['platforms'])) ?>
+                                    </td>
+                                </tr>
+                                <?php endforeach; ?>
+                                <?php else: ?>
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted py-4">
+                                        No entity mapping available.
+                                    </td>
+                                </tr>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
     <hr class="opacity-10 mb-4">
 
@@ -304,6 +303,8 @@ $relatedCount = 0;
                             </div>
 
                             <div class="row g-4 mb-4">
+
+                                <!-- Executive Summary -->
                                 <div class="col-md-12">
                                     <div class="p-4 rounded-4 border bg-white shadow-lg">
                                         <div class="row align-items-center">
@@ -313,19 +314,26 @@ $relatedCount = 0;
                                                 </div>
                                             </div>
                                             <div class="col">
-                                                <h6 class="text-uppercase text-muted fw-bold small mb-1">Executive
-                                                    Summary</h6>
+                                                <h6 class="text-uppercase text-muted fw-bold small mb-1">
+                                                    Executive Summary
+                                                </h6>
                                                 <div class="lead fs-6 text-dark">
-                                                    <?= nl2br(htmlspecialchars($report['threat_summary'] ?? 'Clean - No threats detected.')) ?>
+                                                    <?= nl2br(Html::encode($report['threat_summary'] ?? 'Clean - No threats detected.')) ?>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
+
+
+                                <!-- Geographic Threat Vectors -->
                                 <div class="col-md-6 border-end">
+
                                     <div class="d-flex justify-content-between align-items-center mb-3">
-                                        <h6 class="text-uppercase fw-bold text-muted small mb-0">Geographic Threat
-                                            Vectors</h6>
+                                        <h6 class="text-uppercase fw-bold text-muted small mb-0">
+                                            Geographic Threat Vectors
+                                        </h6>
+
                                         <button class="btn btn-sm btn-outline-primary border-0" type="button"
                                             data-bs-toggle="collapse" data-bs-target="#map-<?= $model->id ?>">
                                             <i class="bi bi-geo-alt"></i> Toggle Map
@@ -334,9 +342,11 @@ $relatedCount = 0;
 
                                     <div class="collapse mb-3" id="map-<?= $model->id ?>">
                                         <div class="rounded-3 overflow-hidden border shadow-sm position-relative"
-                                            style="height: 220px;">
-                                            <iframe width="100%" loading="lazy" height="100%" frameborder="0" src="<?= $mapEmbedUrl ?>"
-                                                allowfullscreen></iframe>
+                                            style="height:220px;">
+
+                                            <iframe width="100%" height="100%" frameborder="0" loading="lazy"
+                                                src="<?= $mapEmbedUrl ?>" allowfullscreen></iframe>
+
                                             <a href="<?= $mapRedirectUrl ?>" target="_blank"
                                                 class="btn btn-primary btn-sm position-absolute bottom-0 end-0 m-2 shadow-sm fw-bold">
                                                 <i class="bi bi-cursor-fill me-1"></i> Open in Maps
@@ -344,70 +354,323 @@ $relatedCount = 0;
                                         </div>
                                     </div>
 
-                                    <?php if (!empty($report['localized_risks'])): ?>
+
+                                    <?php
+        $risks = $report['localized_risks'] ?? [];
+        if (!is_array($risks)) $risks = [$risks];
+        ?>
+
+                                    <?php if (!empty($risks)): ?>
+
                                     <div class="list-group list-group-flush">
-                                        <?php foreach (array_slice($report['localized_risks'], 0, 3) as $risk): ?>
+
+                                        <?php foreach (array_slice($risks,0,3) as $risk): ?>
+
                                         <div class="list-group-item px-0 border-0 bg-transparent mb-2">
+
                                             <div class="d-flex justify-content-between">
-                                                <strong
-                                                    class="text-dark small"><?= Html::encode($risk['location']) ?></strong>
+
+                                                <strong class="text-dark small">
+                                                    <?= Html::encode($risk['location'] ?? '') ?>
+                                                </strong>
+
+                                                <?php if (!empty($risk['severity'])): ?>
+
                                                 <span
-                                                    class="badge rounded-pill bg-light text-<?= $risk['severity'] == 'High' ? 'danger' : 'warning' ?> border small">
-                                                    <?= $risk['severity'] ?>
+                                                    class="badge rounded-pill bg-light text-<?= ($risk['severity']=='High')?'danger':'warning' ?> border small">
+                                                    <?= Html::encode($risk['severity']) ?>
                                                 </span>
+
+                                                <?php endif; ?>
+
                                             </div>
+
+                                            <?php if (!empty($risk['risk_description'])): ?>
+
                                             <p class="text-muted small mb-1">
-                                                <?= Html::encode($risk['risk_description']) ?></p>
-                                            <a href="https://www.google.com/maps/search/?api=1&query=<?= urlencode($risk['location'] . ", Kenya") ?>"
+                                                <?= Html::encode($risk['risk_description']) ?>
+                                            </p>
+
+                                            <?php endif; ?>
+
+                                            <?php if (!empty($risk['location'])): ?>
+
+                                            <a href="https://www.google.com/maps/search/?api=1&query=<?= urlencode($risk['location'].', Kenya') ?>"
                                                 target="_blank" class="text-primary x-small text-decoration-none">
-                                                <i class="bi bi-arrow-up-right-circle me-1"></i> Open to Map
+
+                                                <i class="bi bi-arrow-up-right-circle me-1"></i>
+                                                Open to Map
                                             </a>
+
+                                            <?php endif; ?>
+
                                         </div>
+
                                         <?php endforeach; ?>
+
                                     </div>
+
                                     <?php else: ?>
-                                    <div class="alert alert-light py-2 small">No specific geographic risks identified.
+
+                                    <div class="alert alert-light py-2 small">
+                                        No specific geographic risks identified.
                                     </div>
+
                                     <?php endif; ?>
+
                                 </div>
 
+
+
+                                <!-- Signals & Intelligence -->
                                 <div class="col-md-6">
-                                    <h6 class="text-uppercase fw-bold text-muted small mb-3">Signals & Intelligence</h6>
 
-                                    <?php if (!empty($report['decoded_language'])): ?>
+                                    <h6 class="text-uppercase fw-bold text-muted small mb-3">
+                                        Signals & Intelligence
+                                    </h6>
+
+
+                                    <!-- Decoded Language -->
+                                    <?php
+        $decoded = $report['decoded_language'] ?? [];
+        if (!is_array($decoded)) $decoded = [$decoded];
+        ?>
+
+                                    <?php if (!empty($decoded)): ?>
+
                                     <div class="d-flex flex-wrap gap-2 mb-3">
-                                        <?php foreach ($report['decoded_language'] as $lang): ?>
+
+                                        <?php foreach ($decoded as $lang): ?>
+
                                         <span class="badge bg-white text-dark border p-2 fw-normal"
-                                            title="<?= Html::encode($lang['contextual_explanation']) ?>">
-                                            <span
-                                                class="text-primary fw-bold"><?= Html::encode($lang['original_term']) ?>:</span>
-                                            <?= Html::encode($lang['decoded_meaning']) ?>
+                                            title="<?= Html::encode($lang['contextual_explanation'] ?? '') ?>">
+
+                                            <span class="text-primary fw-bold">
+                                                <?= Html::encode($lang['original_term'] ?? '') ?>:
+                                            </span>
+
+                                            <?= Html::encode($lang['decoded_meaning'] ?? '') ?>
+
                                         </span>
+
                                         <?php endforeach; ?>
+
                                     </div>
+
                                     <?php endif; ?>
 
-                                    <?php if (!empty($report['location_suggestions'])): ?>
-                                    <div class="bg-light rounded p-3">
-                                        <p class="fw-bold small mb-1">Surveillance Recommendations:</p>
-                                        <ul class="list-unstyled mb-0">
-                                            <?php foreach ($report['location_suggestions'] as $loc): ?>
-                                            <li class="small text-muted mb-1">• <span
-                                                    class="text-dark fw-medium"><?= Html::encode($loc['location_name']) ?></span>:
-                                                <?= Html::encode($loc['reason']) ?></li>
-                                            <?php endforeach; ?>
-                                        </ul>
-                                    </div>
+
+                                    <!-- Dog Whistles -->
+                                    <?php
+$dogWhistles = $report['dog_whistles'] ?? [];
+
+if (!is_array($dogWhistles)) {
+    $dogWhistles = [$dogWhistles];
+}
+?>
+
+                                    <?php if (!empty($dogWhistles)): ?>
+
+                                    <ul class="small text-muted mb-0">
+
+                                        <?php foreach ($dogWhistles as $dw): ?>
+
+                                        <li>
+
+                                            <?php
+if (is_array($dw)) {
+    echo Html::encode(implode(', ', array_map('strval', $dw)));
+} else {
+    echo Html::encode($dw);
+}
+?>
+
+                                        </li>
+
+                                        <?php endforeach; ?>
+
+                                    </ul>
+
                                     <?php endif; ?>
+
+
+                                    <!-- Surveillance Suggestions -->
+                                    <?php
+        $locations = $report['location_suggestions'] ?? [];
+        if (!is_array($locations)) $locations = [$locations];
+        ?>
+
+                                    <?php if (!empty($locations)): ?>
+
+                                    <div class="bg-light rounded p-3 mb-3">
+
+                                        <p class="fw-bold small mb-1">
+                                            Surveillance Recommendations:
+                                        </p>
+
+                                        <ul class="list-unstyled mb-0">
+
+                                            <?php foreach ($locations as $loc): ?>
+
+                                            <li class="small text-muted mb-1">
+
+                                                • <span class="text-dark fw-medium">
+                                                    <?= Html::encode($loc['location_name'] ?? '') ?>
+                                                </span> :
+
+                                                <?= Html::encode($loc['reason'] ?? '') ?>
+
+                                            </li>
+
+                                            <?php endforeach; ?>
+
+                                        </ul>
+
+                                    </div>
+
+                                    <?php endif; ?>
+
+
+                                    <!-- Risk Metrics -->
+                                    <?php if (!empty($report['risk_trajectory']) || !empty($report['numerical_score'])): ?>
+
+                                    <div class="bg-light rounded p-3">
+
+                                        <?php if (!empty($report['risk_trajectory'])): ?>
+
+                                        <p class="small mb-1">
+                                            <strong>Risk Trajectory:</strong>
+                                            <?= Html::encode($report['risk_trajectory']) ?>
+                                        </p>
+
+                                        <?php endif; ?>
+
+                                        <?php if (!empty($report['numerical_score'])): ?>
+
+                                        <p class="small mb-0">
+                                            <strong>Threat Score:</strong>
+                                            <?= Html::encode($report['numerical_score']) ?>/10
+                                        </p>
+
+                                        <?php endif; ?>
+
+                                    </div>
+
+                                    <?php endif; ?>
+
                                 </div>
+
                             </div>
+
+
+
+                            <!-- Analyst Assessment -->
+                            <?php
+$analysisList = $report['analysis_basis'] ?? [];
+if (!is_array($analysisList)) $analysisList = [$analysisList];
+?>
+
+                            <?php if (!empty($analysisList)): ?>
+
+                            <div class="row g-4 mb-4">
+
+                                <div class="col-md-12">
+
+                                    <div class="p-4 rounded-4 border bg-white shadow-sm">
+
+                                        <h6 class="text-uppercase fw-bold text-muted small mb-3">
+                                            Analyst Assessment
+                                        </h6>
+
+                                        <?php foreach ($analysisList as $analysis): ?>
+
+                                        <?php if (!empty($analysis['indicators_detected'])): ?>
+
+                                        <p class="small mb-2">
+
+                                            <strong>Indicators Detected:</strong>
+
+                                            <?= Html::encode(
+                            is_array($analysis['indicators_detected'])
+                                ? implode(', ', $analysis['indicators_detected'])
+                                : $analysis['indicators_detected']
+                        ) ?>
+
+                                        </p>
+
+                                        <?php endif; ?>
+
+
+                                        <?php
+                $quotes = $analysis['evidence_quotes'] ?? [];
+                if (!is_array($quotes)) $quotes = [$quotes];
+                ?>
+
+                                        <?php if (!empty($quotes)): ?>
+
+                                        <ul class="small text-muted mb-2">
+
+                                            <?php foreach ($quotes as $quote): ?>
+
+                                            <li>"<?= Html::encode($quote) ?>"</li>
+
+                                            <?php endforeach; ?>
+
+                                        </ul>
+
+                                        <?php endif; ?>
+
+
+                                        <?php if (!empty($analysis['inference_rules_applied'])): ?>
+
+                                        <p class="small text-muted mb-1">
+
+                                            <strong>Analytical Logic:</strong>
+
+                                            <?= Html::encode(
+                            is_array($analysis['inference_rules_applied'])
+                                ? implode(', ', $analysis['inference_rules_applied'])
+                                : $analysis['inference_rules_applied']
+                        ) ?>
+
+                                        </p>
+
+                                        <?php endif; ?>
+
+
+                                        <?php if (!empty($analysis['uncertainty_factors'])): ?>
+
+                                        <p class="small text-warning mb-0">
+
+                                            <strong>Uncertainty Factors:</strong>
+
+                                            <?= Html::encode(
+                            is_array($analysis['uncertainty_factors'])
+                                ? implode(', ', $analysis['uncertainty_factors'])
+                                : $analysis['uncertainty_factors']
+                        ) ?>
+
+                                        </p>
+
+                                        <?php endif; ?>
+
+                                        <?php endforeach; ?>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                            <?php endif; ?>
 
                             <button type="button" class="btn btn-outline-dark btn-sm rounded-pill px-4"
                                 data-bs-toggle="modal" data-bs-target="#modal-<?= $model->request_id ?>">
                                 View Related Posts <i class="bi bi-arrow-right-short"></i>
                             </button>
 
-                            <a href="<?= Url::to(['view', 'request_id' => $model->request_id]) ?>" class="btn btn-dark rounded-pill float-end">View Details</a>
+                            <a href="<?= Url::to(['view', 'request_id' => $model->request_id]) ?>"
+                                class="btn btn-dark rounded-pill float-end">View Details</a>
 
                         </div>
                     </div>
@@ -612,7 +875,9 @@ document.addEventListener("DOMContentLoaded", function() {
             labels: <?= json_encode($metrics['platformLabels']) ?>,
             datasets: [{
                 data: <?= json_encode($metrics['platformData']) ?>,
-                backgroundColor: ['#0d6efd', '#6610f2', '#6f42c1', '#d63384', '#dc3545', '#fd7e14'],
+                backgroundColor: ['#0d6efd', '#6610f2', '#6f42c1', '#d63384', '#dc3545',
+                    '#fd7e14'
+                ],
                 hoverOffset: 10,
                 borderWidth: 0
             }]
@@ -621,7 +886,13 @@ document.addEventListener("DOMContentLoaded", function() {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-                legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20 } }
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        usePointStyle: true,
+                        padding: 20
+                    }
+                }
             },
             cutout: '70%'
         }
@@ -637,12 +908,10 @@ document.addEventListener("DOMContentLoaded", function() {
         ],
         dom: 'Bfrtip',
         buttons: ['excel', 'pdf'],
-        columnDefs: [
-            { targets: '_all', defaultContent: '' }
-        ]
+        columnDefs: [{
+            targets: '_all',
+            defaultContent: ''
+        }]
     });
 });
-
-
-
 </script>
