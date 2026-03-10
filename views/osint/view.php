@@ -100,6 +100,14 @@ $relatedCount = 0;
         </div>
     </div>
 
+    <div class="row">
+        <div class="col-md-12 float-end">
+            <button id="toggleAllMasks" class="btn btn-sm btn-outline-danger mb-3 float-end">
+                <i class="bi bi-eye"></i> Show Usernames
+            </button>
+        </div>
+    </div>
+
     <div class="row g-4 mb-5">
         <div class="col-md-6">
             <div class="card border-0 shadow-sm rounded-4 h-100">
@@ -178,11 +186,10 @@ $relatedCount = 0;
                                 <?php foreach ($userMap as $user => $data): ?>
                                 <tr>
                                     <td class="ps-4 fw-bold">
-        
-                                        <span class="masked-value"
-                                            data-real="<?= Html::encode($user) ?>"
+
+                                        <span class="masked-value" data-real="<?= Html::encode($user) ?>"
                                             data-masked="<?= GlobalHelper::PartialMask($user) ?>">
-                                            
+
                                             <?= GlobalHelper::PartialMask($user) ?>
                                         </span>
 
@@ -699,10 +706,10 @@ if (!is_array($entities)) $entities = [$entities];
                                                     class="text-muted"><?= date('M d, Y', strtotime($post->created_at)) ?></small>
                                             </div>
                                             <h6 class="fw-bold mb-4">
-                                                  <span class="masked-value mb-3"
+                                                <span class="masked-value mb-3"
                                                     data-real="<?= Html::encode($post->author) ?>"
                                                     data-masked="<?= GlobalHelper::PartialMask($post->author) ?>">
-                                                    
+
                                                     <?= GlobalHelper::PartialMask($post->author) ?>
                                                 </span>
 
