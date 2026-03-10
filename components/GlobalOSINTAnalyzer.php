@@ -40,7 +40,7 @@ class GlobalOSINTAnalyzer extends Component
         $model->request_id = $requestId;
         $model->keyword = $keyword;
         $model->summary = $aiAnalysis['threat_summary'] ?? '';
-        $model->numerical_score = $aiAnalysis['numerical_score'] ?? 0;
+        $model->numerical_score = isset($aiAnalysis['numerical_score']) ? $aiAnalysis['numerical_score'] * 10: 0; //convert the numerical score into a percentage figure
         $model->report = json_encode($aiAnalysis, JSON_UNESCAPED_UNICODE);
         $model->analyzed_at = date('Y-m-d H:i:s');
         $model->created_by = GlobalHelper::CurrentUser('id');
