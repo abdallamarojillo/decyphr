@@ -110,9 +110,9 @@ class GlobalOSINTAnalyzer extends Component
         ];
     }
 
-public function fetchGlobalOSINTData($keyword)
-{
-    $request_id = uniqid();
+    public function fetchGlobalOSINTData($keyword)
+    {
+        $request_id = uniqid();
         if (empty($this->apiKey)) return ['error' => 'API Key missing'];
 
         // ENHANCEMENT: Targeted Query Construction
@@ -120,10 +120,12 @@ public function fetchGlobalOSINTData($keyword)
         // to prioritize Kenyan-based results.
         $targetedQuery = $keyword . " Kenya";
         $promises = [
+
             'x' => $this->client->getAsync('https://twitter-api45.p.rapidapi.com/search.php', [
                 'headers' => ['X-RapidAPI-Key' => $this->apiKey, 'X-RapidAPI-Host' => 'twitter-api45.p.rapidapi.com'],
                 'query' => ['query' => $targetedQuery],
             ]),
+
             'tiktok' => $this->client->getAsync('https://tiktok-api6.p.rapidapi.com/search/general/query',
                 [
                     'headers' => [
@@ -147,6 +149,18 @@ public function fetchGlobalOSINTData($keyword)
                 ],
             ]),
 
+            'reddit' => $this->client->getAsync(
+            'https://reddit34.p.rapidapi.com/getSearchPosts',
+            [
+                'headers' => [
+                    'X-RapidAPI-Key' => $this->apiKey,
+                    'X-RapidAPI-Host' => 'reddit34.p.rapidapi.com'
+                ],
+                'query' => [
+                    'query' => $targetedQuery
+                ],
+            ]),
+
         ];
 
         $responses = Promise\Utils::settle($promises)->wait();
@@ -155,6 +169,7 @@ public function fetchGlobalOSINTData($keyword)
             'x' => $this->parseXResponse($responses['x']),
             'tiktok' => $this->parseTikTokResponse($responses['tiktok']),
             'facebook' => $this->parseFacebookResponse($responses['facebook']),
+            'reddit' => $this->parseRedditResponse($responses['reddit']),
         ];
 
         $aiAnalysis = $this->getAiIntelligence($keyword, $rawPlatforms);
@@ -539,6 +554,49 @@ PROMPT;
                 ],
                 'url' => $p['url'] ?? null,
                 'post_id' => $p['post_id'] ?? null,
+            ];
+        }
+
+        return [
+            'data' => $posts,
+            'status' => count($posts) > 0 ? 'OK' : 'Empty'
+        ];
+    }
+
+    private function parseRedditResponse($res)
+    {
+        if ($res['state'] !== 'fulfilled') {
+            return ['data' => [], 'status' => 'Fail'];
+        }
+
+        $json = json_decode((string)$res['value']->getBody(), true);
+        $posts = [];
+
+        foreach (($json['data']['posts'] ?? []) as $p) {
+
+            $d = $p['data'] ?? [];
+
+            $text = trim(($d['title'] ?? '') . ' ' . ($d['selftext'] ?? ''));
+
+            $posts[] = [
+                'text' => $text,
+                'author' => $d['author'] ?? 'Unknown',
+                'created_at' => isset($d['created_utc'])
+                    ? date('Y-m-d H:i:s', $d['created_utc'])
+                    : 'N/A',
+                'location' => $d['subreddit_name_prefixed'] ?? 'N/A',
+                'engagement' => [
+                    'likes'    => $d['ups'] ?? 0,
+                    'shares'   => $d['num_crossposts'] ?? 0,
+                    'comments' => $d['num_comments'] ?? 0,
+                    'views'    => $d['view_count'] ?? 0
+                ],
+                'post_id' => $d['id'] ?? null,
+                'subreddit' => $d['subreddit'] ?? null,
+                'thumbnail' => $d['thumbnail'] ?? null,
+                'url' => isset($d['permalink'])
+                    ? 'https://www.reddit.com' . $d['permalink']
+                    : ($d['url'] ?? null)
             ];
         }
 
