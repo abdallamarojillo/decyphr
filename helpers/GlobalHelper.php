@@ -84,4 +84,17 @@ class GlobalHelper
         // Return full array or a single value
         return $key === null ? $data : ($data[$key] ?? null);
     }
+
+    public static function PartialMask($value, $start = 2, $end = 2)
+    {
+        $length = strlen($value);
+
+        if ($length <= ($start + $end)) {
+            return str_repeat('*', $length);
+        }
+
+        return substr($value, 0, $start)
+            . str_repeat('*', $length - ($start + $end))
+            . substr($value, -$end);
+    }
 }

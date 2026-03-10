@@ -1,4 +1,6 @@
 <?php
+
+use app\helpers\GlobalHelper;
 use yii\helpers\Url;
 use yii\helpers\Html;
 use yii\helpers\Json;
@@ -182,7 +184,20 @@ $relatedCount = 0;
                                 <?php if (!empty($userMap)): ?>
                                 <?php foreach ($userMap as $user => $data): ?>
                                 <tr>
-                                    <td class="ps-4 fw-bold"><?= Html::encode($user) ?></td>
+                                    <td class="ps-4 fw-bold">
+        
+                                        <span class="masked-value"
+                                            data-real="<?= Html::encode($user) ?>"
+                                            data-masked="<?= GlobalHelper::PartialMask($user) ?>">
+                                            
+                                            <?= GlobalHelper::PartialMask($user) ?>
+                                        </span>
+
+                                        <button class="btn btn-sm toggle-mask ms-2 float-end">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+
+                                    </td>
                                     <td>
                                         <span class="badge bg-danger rounded-pill"><?= $data['count'] ?></span>
                                     </td>
@@ -714,7 +729,18 @@ if (!is_array($analysisList)) $analysisList = [$analysisList];
                                                 <small
                                                     class="text-muted"><?= date('M d, Y', strtotime($post->created_at)) ?></small>
                                             </div>
-                                            <h6 class="fw-bold mb-2"><?= Html::encode($post->author) ?></h6>
+                                            <h6 class="fw-bold mb-4">
+                                                  <span class="masked-value mb-3"
+                                                    data-real="<?= Html::encode($post->author) ?>"
+                                                    data-masked="<?= GlobalHelper::PartialMask($post->author) ?>">
+                                                    
+                                                    <?= GlobalHelper::PartialMask($post->author) ?>
+                                                </span>
+
+                                                <button class="btn btn-sm toggle-mask ms-2 float-end">
+                                                    <i class="bi bi-eye"></i>
+                                                </button>
+                                            </h6>
                                             <p class="card-text text-secondary small mb-3 italic">
                                                 "<?= Html::encode($post->text) ?>"</p>
                                             <div class="border-top pt-3 d-flex gap-3">
