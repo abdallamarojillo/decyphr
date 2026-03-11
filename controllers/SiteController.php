@@ -188,8 +188,24 @@ class SiteController extends Controller
             throw new \yii\web\NotFoundHttpException('Log not found');
         }
 
+        $prettyAssociatedData = $log->associated_data;
+
+        if (!empty($log->associated_data)) {
+            $decoded = json_decode($log->associated_data, true, 512, JSON_INVALID_UTF8_SUBSTITUTE);
+
+            if (json_last_error() === JSON_ERROR_NONE) {
+                $prettyAssociatedData = json_encode(
+                    $decoded,
+                    JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE
+                );
+            } else {
+                $prettyAssociatedData = 'Invalid JSON: ' . json_last_error_msg() . PHP_EOL . $log->associated_data;
+            }
+        }
+
         return $this->render('log-view', [
             'log' => $log,
+            'prettyAssociatedData' => $prettyAssociatedData,
         ]);
     }
 

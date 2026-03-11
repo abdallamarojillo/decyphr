@@ -79,7 +79,7 @@ if(GlobalHelper::CurrentUser('role') != 'admin')
                 </div>
                 <div class="card-body px-4 pb-4">
                     <pre id="jsonPayload" class="p-3 rounded-3 bg-dark text-info mb-0 small shadow-inner" style="max-height: 400px; overflow-y: auto;">
-<?= Html::encode(Json::encode(Json::decode($log->associated_data), JSON_PRETTY_PRINT)) ?>
+                        <?= Html::encode($prettyAssociatedData) ?>
                     </pre>
                 </div>
             </div>
