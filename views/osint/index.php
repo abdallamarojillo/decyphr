@@ -241,37 +241,52 @@ $relatedCount = 0;
 
     <hr class="opacity-10 mb-4">
 
+<div class="container py-4">
     <div class="mb-4">
-        <label class="small fw-bold text-uppercase text-muted mb-2 d-block"
-            style="font-size: 0.7rem; letter-spacing: 1px;">Quick filters</label>
+        <label class="text-uppercase fw-bold text-secondary mb-3 d-block" 
+               style="font-size: 0.75rem; letter-spacing: 1.5px;">
+            <i class="bi bi-funnel-fill me-1"></i> Quick Filters
+        </label>
         <div class="d-flex flex-wrap gap-2">
-            <button class="btn btn-outline-danger btn-sm tactical-btn modern-pill"
+            <button class="btn btn-outline-danger btn-sm rounded-pill px-3 py-1 shadow-sm fw-medium"
+                id="filter-terrorism"
                 data-keyword="al shabaab terrorism attack Kenya">
                 <i class="bi bi-shield-lock-fill me-1"></i> Terrorism
             </button>
-            <button class="btn btn-outline-warning btn-sm tactical-btn modern-pill"
+            
+            <button class="btn btn-outline-warning btn-sm rounded-pill px-3 py-1 shadow-sm fw-medium text-dark"
+                id="filter-kidnapping"
                 data-keyword="kidnapped abducted ransom Kenya">
                 <i class="bi bi-person-exclamation me-1"></i> Kidnapping
             </button>
-            <button class="btn btn-outline-dark btn-sm tactical-btn modern-pill"
+            
+            <button class="btn btn-outline-dark btn-sm rounded-pill px-3 py-1 shadow-sm fw-medium"
+                id="filter-gangs"
                 data-keyword="gang violence shooting Kenya">
                 <i class="bi bi-geo-alt-fill me-1"></i> Gangs
             </button>
         </div>
     </div>
 
-    <form id="osint-search-form" class="mb-5">
-        <div class="search-container shadow-sm">
-            <div class="input-group">
-                <span class="input-group-text border-0 bg-transparent ps-4">
-                    <i class="bi bi-terminal text-primary"></i>
-                </span>
-                <input id="keyword-input" type="text" class="form-control border-0 bg-transparent py-3 shadow-none"
-                    placeholder="Search keyword (e.g. gang violence, protests...)">
-                <button class="btn btn-primary px-5 fw-bold scan-button" type="submit">SCAN</button>
+    <form id="osint-search-form">
+        <div class="bg-white rounded-pill shadow-sm border p-1 d-flex align-items-center">
+            <div class="ps-4 text-primary">
+                <i class="bi bi-search fs-5"></i>
             </div>
+            
+            <input id="keyword-input" type="text" 
+                class="form-control border-0 bg-transparent py-3 shadow-none flex-grow-1"
+                placeholder="Search  keywords (e.g. finance bill, fuel price, elections 2027, security...)"
+                aria-label="Search OSINT">
+            
+            <button class="btn btn-primary rounded-pill px-5 py-2 me-1 fw-bold text-uppercase" 
+                    type="submit" 
+                    id="submit-scan">
+                Search
+            </button>
         </div>
     </form>
+</div>
 
     <div id="loading-spinner" class="text-center py-5 d-none">
         <div class="spinner-border text-primary"></div>
@@ -693,7 +708,7 @@ if (!is_array($analysisList)) $analysisList = [$analysisList];
                             </button>
 
                             <a href="<?= Url::to(['view', 'request_id' => $model->request_id]) ?>"
-                                class="btn btn-dark rounded-pill float-end">View Details</a>
+                                class="btn btn-dark rounded-pill float-end mb-3">View Details</a>
 
                         </div>
                     </div>
