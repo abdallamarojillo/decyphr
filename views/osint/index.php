@@ -687,7 +687,7 @@ if (!is_array($analysisList)) $analysisList = [$analysisList];
 
                             <?php endif; ?>
 
-                            <button type="button" class="btn btn-outline-dark btn-sm rounded-pill px-4"
+                            <button type="button" class="btn btn-outline-dark btn-sm rounded-pill px-4 d-none"
                                 data-bs-toggle="modal" data-bs-target="#modal-<?= $model->request_id ?>">
                                 View Related Posts <i class="bi bi-arrow-right-short"></i>
                             </button>
