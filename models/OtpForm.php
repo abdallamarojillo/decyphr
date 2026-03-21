@@ -33,7 +33,7 @@ class OtpForm extends Model
 
         $user->markOtpUsed();
 
-        Yii::$app->user->login($user, 3600 * 24 * 30);
+        Yii::$app->user->login($user, 3600 * 24); //only auto authenticate the user in one day
         Yii::$app->session->remove('mfa_user_id');
 
         //Log the event
