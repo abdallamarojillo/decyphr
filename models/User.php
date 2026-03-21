@@ -34,6 +34,7 @@ class User extends ActiveRecord implements IdentityInterface
         return [
             [['username', 'email', 'password_hash'], 'required'],
             [['status'], 'integer'],
+            [['last_login'], 'safe'], 
             [['username', 'email', 'password_hash', 'auth_key', 'access_token'], 'string', 'max' => 255],
             [['username'], 'unique'],
             [['email'], 'unique'],

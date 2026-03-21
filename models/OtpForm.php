@@ -33,6 +33,10 @@ class OtpForm extends Model
 
         $user->markOtpUsed();
 
+        //update last login
+        $user->last_login = date('Y-m-d H:i:s');
+        $user->save(false);
+
         Yii::$app->user->login($user, 3600 * 24); //only auto authenticate the user in one day
         Yii::$app->session->remove('mfa_user_id');
 
