@@ -431,6 +431,13 @@ class OsintController extends Controller
     {
         Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
         $keyword = Yii::$app->request->post('keyword');
+        $max_tokens = Yii::$app->request->post('max_tokens') ? : 2000;
+        $ai_model = Yii::$app->request->post('ai_model') ? : 'gpt-4o';
+
+        $options = [
+            'ai_model' => $ai_model,
+            'max_tokens' => (int)$max_tokens, // Cast to int for API consistency
+        ];
 
         if (!$keyword) {
             return ['success' => false, 'error' => 'No tactical keyword provided.'];
@@ -438,7 +445,7 @@ class OsintController extends Controller
 
         try {
             $analyzer = Yii::$app->globalOSINTAnalyzer;
-            $platformData = $analyzer->fetchGlobalOSINTData($keyword);
+            $platformData = $analyzer->fetchGlobalOSINTData($keyword, $options);
 
             // 1️. Ensure AI report exists and has correct keys
             $aiReportRaw = $platformData['ai_report'] ?? [];
@@ -462,7 +469,7 @@ class OsintController extends Controller
             // 4️. Log the event
             Log::log(
                 'Sent OSINT for Analysis',
-                'Sent OSINT for Analysis with the keyword - '.$keyword,
+                'Sent OSINT for Analysis with the keyword - '.$keyword. ', and the options : ai_model'.$ai_model. ', max_tokens '.$max_tokens,
                 LogType::API,
                 $platformData ?? NULL
             );

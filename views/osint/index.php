@@ -9,6 +9,73 @@ $this->title = 'OSINT Intelligence Feed';
 $relatedCount = 0;
 ?>
 
+<style>
+/* Subtle glow for the selected model to match a 'Sleek' UI */
+.btn-check:checked+.btn-outline-primary {
+    background-color: #0d6efd;
+    color: white;
+    box-shadow: 0 0 12px rgba(13, 110, 253, 0.5);
+    border-color: #0d6efd;
+}
+
+/* Sleek Transitions and Colors */
+.bg-glass {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+}
+
+.transition-focus:focus-within {
+    border-color: #0d6efd !important;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.1);
+}
+
+.btn-white-to-primary {
+    background: white;
+    color: #6c757d;
+    transition: all 0.3s ease;
+}
+
+.btn-check:checked+.btn-white-to-primary {
+    background-color: #0d6efd;
+    color: white;
+}
+
+.hover-grow {
+    transition: transform 0.2s ease;
+}
+
+.hover-grow:hover {
+    transform: scale(1.02);
+}
+
+/* Range Slider Styling */
+.form-range::-webkit-slider-thumb {
+    background: #0d6efd;
+}
+
+.form-range::-moz-range-thumb {
+    background: #0d6efd;
+}
+
+.model-card {
+    cursor: pointer;
+    border-radius: 16px;
+    transition: all 0.25s ease;
+    background: #ffffff;
+}
+
+.model-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+}
+
+.btn-check:checked+.model-card {
+    border: 2px solid #0d6efd;
+    background: rgba(13, 110, 253, 0.05);
+    box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.1);
+}
+</style>
+
 <div class="container py-4">
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end gap-3 mb-4">
         <div>
@@ -241,52 +308,217 @@ $relatedCount = 0;
 
     <hr class="opacity-10 mb-4">
 
-<div class="container py-4">
-    <div class="mb-4">
-        <label class="text-uppercase fw-bold text-secondary mb-3 d-block" 
-               style="font-size: 0.75rem; letter-spacing: 1.5px;">
-            <i class="bi bi-funnel-fill me-1"></i> Quick Filters
-        </label>
-        <div class="d-flex flex-wrap gap-2">
-            <button class="btn btn-outline-danger btn-sm rounded-pill px-3 py-1 shadow-sm fw-medium"
-                id="filter-terrorism"
-                data-keyword="al shabaab terrorism attack Kenya">
-                <i class="bi bi-shield-lock-fill me-1"></i> Terrorism
-            </button>
-            
-            <button class="btn btn-outline-warning btn-sm rounded-pill px-3 py-1 shadow-sm fw-medium text-dark"
-                id="filter-kidnapping"
-                data-keyword="kidnapped abducted ransom Kenya">
-                <i class="bi bi-person-exclamation me-1"></i> Kidnapping
-            </button>
-            
-            <button class="btn btn-outline-dark btn-sm rounded-pill px-3 py-1 shadow-sm fw-medium"
-                id="filter-gangs"
-                data-keyword="gang violence shooting Kenya">
-                <i class="bi bi-geo-alt-fill me-1"></i> Gangs
-            </button>
-        </div>
-    </div>
+    <div class="container py-4">
+        <div class="mb-4">
+            <label class="text-uppercase fw-bold text-secondary mb-3 d-block"
+                style="font-size: 0.75rem; letter-spacing: 1.5px;">
+                <i class="bi bi-funnel-fill me-1"></i> Quick Filters
+            </label>
+            <div class="d-flex flex-wrap gap-2">
+                <button class="btn btn-outline-danger btn-sm rounded-pill px-3 py-1 shadow-sm fw-medium"
+                    id="filter-terrorism" data-keyword="al shabaab terrorism attack Kenya">
+                    <i class="bi bi-shield-lock-fill me-1"></i> Terrorism
+                </button>
 
-    <form id="osint-search-form">
-        <div class="bg-white rounded-pill shadow-sm border p-1 d-flex align-items-center">
-            <div class="ps-4 text-primary">
-                <i class="bi bi-search fs-5"></i>
+                <button class="btn btn-outline-warning btn-sm rounded-pill px-3 py-1 shadow-sm fw-medium text-dark"
+                    id="filter-kidnapping" data-keyword="kidnapped abducted ransom Kenya">
+                    <i class="bi bi-person-exclamation me-1"></i> Kidnapping
+                </button>
+
+                <button class="btn btn-outline-dark btn-sm rounded-pill px-3 py-1 shadow-sm fw-medium" id="filter-gangs"
+                    data-keyword="gang violence shooting Kenya">
+                    <i class="bi bi-geo-alt-fill me-1"></i> Gangs
+                </button>
             </div>
-            
-            <input id="keyword-input" type="text" 
-                class="form-control border-0 bg-transparent py-3 shadow-none flex-grow-1"
-                placeholder="Search  keywords (e.g. finance bill, fuel price, elections 2027, security...)"
-                aria-label="Search OSINT">
-            
-            <button class="btn btn-primary rounded-pill px-5 py-2 me-1 fw-bold text-uppercase" 
-                    type="submit" 
-                    id="submit-scan">
-                Search
-            </button>
         </div>
-    </form>
-</div>
+
+        <div class="card border-0 shadow-lg p-4 rounded-4 bg-glass">
+            <form id="osint-search-form" class="w-100">
+
+                <!-- 🔍 KEYWORD -->
+                <div class="mb-4">
+                    <label class="form-label text-muted small fw-bold text-uppercase ps-2">Target Keyword</label>
+                    <div class="bg-light rounded-pill border p-1 d-flex align-items-center transition-focus">
+                        <div class="ps-4 text-primary">
+                            <i class="bi bi-search fs-5"></i>
+                        </div>
+
+                        <input id="keyword-input" name="keyword" type="text"
+                            class="form-control border-0 bg-transparent py-3 shadow-none flex-grow-1"
+                            placeholder="Search keywords (e.g. finance bill, fuel price...)" style="font-size: 1.1rem;">
+
+                        <button
+                            class="btn btn-primary rounded-pill px-5 py-2 me-1 fw-bold text-uppercase shadow-sm hover-grow"
+                            type="submit" id="submit-scan">
+                            Scan <i class="bi bi-arrow-right ms-1"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label text-muted small fw-bold text-uppercase ps-2 mb-3 d-block">
+                        Analysis Engine
+                    </label>
+
+                    <!--  PRIMARY MODELS -->
+                    <div class="row g-3 mb-2">
+
+                        <!--  MINI -->
+                        <div class="col-md-4">
+                            <input type="radio" class="btn-check" name="ai_model" id="model-mini" value="gpt-4o-mini">
+                            <label class="card model-card h-100 p-3 border-0 shadow-sm" for="model-mini">
+                                <i class="bi bi-lightning-charge text-warning fs-4 mb-2"></i>
+                                <h6 class="fw-bold mb-1">GPT-4o Mini</h6>
+                                <small class="text-muted">Fast filtering & ingestion</small>
+                            </label>
+                        </div>
+
+                        <!--  4o -->
+                        <div class="col-md-4">
+                            <input type="radio" class="btn-check" name="ai_model" id="model-4o" value="gpt-4o" checked>
+                            <label class="card model-card h-100 p-3 border-0 shadow model-selected" for="model-4o">
+                                <i class="bi bi-cpu text-primary fs-4 mb-2"></i>
+                                <h6 class="fw-bold mb-1">GPT-4o</h6>
+                                <small class="text-muted">Balanced OSINT analysis</small>
+                            </label>
+                        </div>
+
+                        <!--  THINKING -->
+                        <div class="col-md-4">
+                            <input type="radio" class="btn-check" name="ai_model" id="model-thinking"
+                                value="gpt-5-thinking">
+                            <label class="card model-card h-100 p-3 border-0 shadow-sm" for="model-thinking">
+                                <i class="bi bi-brain text-danger fs-4 mb-2"></i>
+                                <h6 class="fw-bold mb-1">GPT-5 Thinking</h6>
+                                <small class="text-muted">Deep intelligence reasoning</small>
+                            </label>
+                        </div>
+
+                    </div>
+
+                    <!--  EXPAND BUTTON -->
+                    <div class="text-center">
+                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-4"
+                            data-bs-toggle="collapse" data-bs-target="#more-models">
+                            <i class="bi bi-grid me-1"></i> More Models
+                        </button>
+                    </div>
+
+                    <!--  EXPANDED MODELS -->
+                    <div class="collapse mt-3" id="more-models">
+                        <div class="row g-3">
+
+                            <!--  GEMINI PRO -->
+                            <div class="col-md-4">
+                                <input type="radio" class="btn-check" name="ai_model" id="model-gemini-pro"
+                                    value="gemini-1.5-pro">
+                                <label class="card model-card h-100 p-3 border-0 shadow-sm" for="model-gemini-pro">
+                                    <i class="bi bi-globe text-success fs-4 mb-2"></i>
+                                    <h6 class="fw-bold mb-1">Gemini Pro</h6>
+                                    <small class="text-muted">
+                                        Long-context analysis (bulk data)
+                                    </small>
+                                </label>
+                            </div>
+
+                            <!--  GEMINI FLASH -->
+                            <div class="col-md-4">
+                                <input type="radio" class="btn-check" name="ai_model" id="model-gemini-flash"
+                                    value="gemini-1.5-flash">
+                                <label class="card model-card h-100 p-3 border-0 shadow-sm" for="model-gemini-flash">
+                                    <i class="bi bi-speedometer2 text-info fs-4 mb-2"></i>
+                                    <h6 class="fw-bold mb-1">Gemini Flash</h6>
+                                    <small class="text-muted">
+                                        Ultra-fast real-time analysis
+                                    </small>
+                                </label>
+                            </div>
+
+                            <!--  CLAUDE OPUS -->
+                            <div class="col-md-4">
+                                <input type="radio" class="btn-check" name="ai_model" id="model-claude-opus"
+                                    value="claude-3-opus">
+                                <label class="card model-card h-100 p-3 border-0 shadow-sm" for="model-claude-opus">
+                                    <i class="bi bi-file-earmark-text text-dark fs-4 mb-2"></i>
+                                    <h6 class="fw-bold mb-1">Claude Opus</h6>
+                                    <small class="text-muted">
+                                        Detailed intelligence reports
+                                    </small>
+                                </label>
+                            </div>
+
+                            <!--  CLAUDE HAIKU -->
+                            <div class="col-md-4">
+                                <input type="radio" class="btn-check" name="ai_model" id="model-claude-haiku"
+                                    value="claude-3-haiku">
+                                <label class="card model-card h-100 p-3 border-0 shadow-sm" for="model-claude-haiku">
+                                    <i class="bi bi-lightning text-secondary fs-4 mb-2"></i>
+                                    <h6 class="fw-bold mb-1">Claude Haiku</h6>
+                                    <small class="text-muted">
+                                        Fast classification & tagging
+                                    </small>
+                                </label>
+                            </div>
+
+                            <!--  MISTRAL -->
+                            <div class="col-md-4">
+                                <input type="radio" class="btn-check" name="ai_model" id="model-mistral"
+                                    value="mistral-large">
+                                <label class="card model-card h-100 p-3 border-0 shadow-sm" for="model-mistral">
+                                    <i class="bi bi-diagram-3 text-primary fs-4 mb-2"></i>
+                                    <h6 class="fw-bold mb-1">Mistral Large</h6>
+                                    <small class="text-muted">
+                                        Efficient alternative AI model
+                                    </small>
+                                </label>
+                            </div>
+
+                            <!-- LLAMA -->
+                            <div class="col-md-4">
+                                <input type="radio" class="btn-check" name="ai_model" id="model-llama" value="llama-3">
+                                <label class="card model-card h-100 p-3 border-0 shadow-sm" for="model-llama">
+                                    <i class="bi bi-shield-lock text-success fs-4 mb-2"></i>
+                                    <h6 class="fw-bold mb-1">LLaMA 3</h6>
+                                    <small class="text-muted">
+                                        Private / on-prem analysis
+                                    </small>
+                                </label>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 🎚 TOKENS -->
+                <div class="row align-items-end g-4">
+                    <div class="col-md-12">
+                        <div class="d-flex justify-content-between align-items-center mb-2 px-2">
+                            <label class="form-label text-muted small fw-bold text-uppercase mb-0">
+                                Depth: <span class="text-primary" id="token-display">2,000</span>
+                            </label>
+                            <span class="badge rounded-pill bg-primary-subtle text-primary border border-primary-subtle"
+                                id="cost-display">
+                                Cost Est: < $0.01 </span>
+                        </div>
+
+                        <div class="p-3 bg-light rounded-4 border">
+                            <input type="range" class="form-range" id="max_tokens" name="max_tokens" min="256"
+                                max="16384" step="256" value="2000">
+                            <div class="d-flex justify-content-between text-muted mt-1" style="font-size: 0.75rem;">
+                                <span id="length-label">Standard Report</span>
+                                <i class="bi bi-info-circle"
+                                    title="Higher tokens allow for deeper reasoning but take longer."></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </form>
+        </div>
+
+
+
+    </div>
 
     <div id="loading-spinner" class="text-center py-5 d-none">
         <div class="spinner-border text-primary"></div>
@@ -885,82 +1117,187 @@ if (!is_array($analysisList)) $analysisList = [$analysisList];
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-const spinner = document.getElementById('loading-spinner');
-const results = document.getElementById('results-container');
+document.addEventListener('DOMContentLoaded', function() {
 
-// Search Logic
-document.getElementById('osint-search-form').onsubmit = e => {
-    e.preventDefault();
-    spinner.classList.remove('d-none');
-    results.classList.add('opacity-50');
-
-    fetch('<?= Url::to(['osint/fetch']) ?>', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'X-CSRF-Token': '<?= Yii::$app->request->getCsrfToken() ?>'
-            },
-            body: 'keyword=' + encodeURIComponent(document.getElementById('keyword-input').value)
-        })
-        .then(r => r.json())
-        .then(() => {
-            location.reload();
+    document.querySelectorAll('.model-card').forEach(card => {
+        card.addEventListener('click', () => {
+            document.querySelectorAll('.model-card').forEach(c => c.classList.remove(
+                'model-selected'));
+            card.classList.add('model-selected');
         });
-};
+    });
 
-// Quick Filters
-document.querySelectorAll('.tactical-btn').forEach(b => {
-    b.onclick = () => {
-        document.getElementById('keyword-input').value = b.dataset.keyword;
-        document.getElementById('osint-search-form').dispatchEvent(new Event('submit'));
-    };
-});
+    const spinner = document.getElementById('loading-spinner');
+    const results = document.getElementById('results-container');
+    const form = document.getElementById('osint-search-form');
 
-document.addEventListener("DOMContentLoaded", function() {
-    const ctx = document.getElementById('platformChart').getContext('2d');
-    new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-            labels: <?= json_encode($metrics['platformLabels']) ?>,
-            datasets: [{
-                data: <?= json_encode($metrics['platformData']) ?>,
-                backgroundColor: ['#0d6efd', '#6610f2', '#6f42c1', '#d63384', '#dc3545',
-                    '#fd7e14'
-                ],
-                hoverOffset: 10,
-                borderWidth: 0
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: {
-                        usePointStyle: true,
-                        padding: 20
-                    }
-                }
-            },
-            cutout: '70%'
+    const tokenRange = document.getElementById('max_tokens');
+    const tokenDisplay = document.getElementById('token-display');
+    const lengthLabel = document.getElementById('length-label');
+    const costDisplay = document.getElementById('cost-display');
+
+    // -------------------------------
+    // Search Logic
+    // -------------------------------
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const keyword = document.getElementById('keyword-input').value.trim();
+        const max_tokens = document.getElementById('max_tokens').value;
+        const ai_model = document.querySelector('input[name="ai_model"]:checked')?.value || 'gpt-4o';
+
+        if (!keyword) {
+            alert('Please enter a keyword.');
+            return;
         }
+
+        spinner.classList.remove('d-none');
+        results.classList.add('opacity-50');
+
+        fetch('<?= Url::to(['osint/fetch']) ?>', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                    'X-CSRF-Token': '<?= Yii::$app->request->getCsrfToken() ?>'
+                },
+                body: 'keyword=' + encodeURIComponent(keyword) +
+                    '&max_tokens=' + encodeURIComponent(max_tokens) +
+                    '&ai_model=' + encodeURIComponent(ai_model)
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Fetch response:', data);
+
+                if (data.success) {
+                    location.reload();
+                } else {
+                    spinner.classList.add('d-none');
+                    results.classList.remove('opacity-50');
+                    alert(data.error || 'Request failed.');
+                }
+            })
+            .catch(error => {
+                console.error('Fetch error:', error);
+                spinner.classList.add('d-none');
+                results.classList.remove('opacity-50');
+                alert('An error occurred while submitting the request.');
+            });
     });
 
-    $.fn.dataTable.ext.errMode = 'none';
-
-    $('.user-mapping-table').DataTable({
-        pageLength: 5,
-        lengthMenu: [
-            [5, 10, 25, 50, -1],
-            [5, 10, 25, 50, "All"]
-        ],
-        dom: 'Bfrtip',
-        buttons: ['excel', 'pdf'],
-        columnDefs: [{
-            targets: '_all',
-            defaultContent: ''
-        }]
+    // -------------------------------
+    // Quick Filters
+    // -------------------------------
+    document.querySelectorAll('[data-keyword]').forEach(button => {
+        button.addEventListener('click', function() {
+            document.getElementById('keyword-input').value = this.dataset.keyword;
+            form.dispatchEvent(new Event('submit', {
+                bubbles: true,
+                cancelable: true
+            }));
+        });
     });
+
+    // -------------------------------
+    // Platform Chart
+    // -------------------------------
+    const chartCanvas = document.getElementById('platformChart');
+    if (chartCanvas) {
+        const ctx = chartCanvas.getContext('2d');
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: <?= json_encode($metrics['platformLabels']) ?>,
+                datasets: [{
+                    data: <?= json_encode($metrics['platformData']) ?>,
+                    backgroundColor: ['#0d6efd', '#6610f2', '#6f42c1', '#d63384', '#dc3545',
+                        '#fd7e14'
+                    ],
+                    hoverOffset: 10,
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            usePointStyle: true,
+                            padding: 20
+                        }
+                    }
+                },
+                cutout: '70%'
+            }
+        });
+    }
+
+    // -------------------------------
+    // DataTable
+    // -------------------------------
+    if (window.jQuery && $.fn.DataTable) {
+        $.fn.dataTable.ext.errMode = 'none';
+
+        $('.user-mapping-table').DataTable({
+            pageLength: 5,
+            lengthMenu: [
+                [5, 10, 25, 50, -1],
+                [5, 10, 25, 50, "All"]
+            ],
+            dom: 'Bfrtip',
+            buttons: ['excel', 'pdf'],
+            columnDefs: [{
+                targets: '_all',
+                defaultContent: ''
+            }]
+        });
+    }
+
+    // -------------------------------
+    // Token / Cost UI
+    // -------------------------------
+    function updateMetrics() {
+        const val = parseInt(tokenRange.value, 10) || 2000;
+        const model = document.querySelector('input[name="ai_model"]:checked')?.value || 'gpt-4o';
+
+        tokenDisplay.innerText = val.toLocaleString();
+
+        if (val < 1000) {
+            lengthLabel.innerText = 'Brief Snippet';
+        } else if (val < 4000) {
+            lengthLabel.innerText = 'Standard Report';
+        } else if (val < 8000) {
+            lengthLabel.innerText = 'Detailed Briefing';
+        } else {
+            lengthLabel.innerText = 'Comprehensive Dossier';
+        }
+
+        const pricing = {
+            'gpt-5.4-nano': 0.0005,
+            'gpt-4o': 0.005,
+            'gpt-5.4-thinking': 0.015
+        };
+
+        const rate = pricing[model] || 0.005;
+        const estimate = (val / 1000) * rate;
+
+        costDisplay.classList.remove('bg-primary-subtle', 'text-primary', 'bg-success-subtle', 'text-success');
+
+        if (estimate > 0 && estimate < 0.01) {
+            costDisplay.innerText = 'Est: < $0.01';
+            costDisplay.classList.add('bg-success-subtle', 'text-success');
+        } else {
+            costDisplay.innerText = `Est: $${estimate.toFixed(2)}`;
+            costDisplay.classList.add('bg-primary-subtle', 'text-primary');
+        }
+    }
+
+    tokenRange.addEventListener('input', updateMetrics);
+    document.querySelectorAll('input[name="ai_model"]').forEach(radio => {
+        radio.addEventListener('change', updateMetrics);
+    });
+
+    updateMetrics();
 });
 </script>

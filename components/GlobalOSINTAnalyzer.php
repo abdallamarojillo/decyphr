@@ -118,9 +118,10 @@ class GlobalOSINTAnalyzer extends Component
         ];
     }
 
-    public function fetchGlobalOSINTData($keyword)
+    public function fetchGlobalOSINTData($keyword, array $options = [])
     {
         $request_id = uniqid();
+
         if (empty($this->apiKey)) return ['error' => 'API Key missing'];
 
         // ENHANCEMENT: Targeted Query Construction
@@ -180,7 +181,7 @@ class GlobalOSINTAnalyzer extends Component
             'reddit' => $this->parseRedditResponse($responses['reddit']),
         ];
 
-        $aiAnalysis = $this->getAiIntelligence($keyword, $rawPlatforms);
+        $aiAnalysis = $this->getAiIntelligence($keyword, $rawPlatforms, $options);
         $this->saveAiAnalysis($request_id, $keyword, $aiAnalysis);
 
 
@@ -217,7 +218,7 @@ class GlobalOSINTAnalyzer extends Component
         ];
     }
 
-private function getAiIntelligence($keyword, $data)
+private function getAiIntelligence($keyword, $data, array $options = [])
 {
     if (empty($this->aiKey)) {
         return [
@@ -232,6 +233,9 @@ private function getAiIntelligence($keyword, $data)
             'numerical_score' => 0
         ];
     }
+
+    $ai_model = $options['ai_model'] ?? 'gpt-4o';
+    $max_tokens = (int)($options['$max_tokens'] ?? 2000);
 
     // Collect social media evidence
     $contentSummary = "";
@@ -373,14 +377,14 @@ PROMPT;
                 'Content-Type' => 'application/json'
             ],
             'json' => [
-                'model' => 'gpt-4o',
+                'model' => $ai_model,
                 'messages' => [
                     [
                         'role' => 'user',
                         'content' => $prompt
                     ]
                 ],
-                'max_tokens' => 2000,
+                'max_tokens' => $max_tokens,
                 'temperature' => 0.2
             ]
         ]);
@@ -397,7 +401,7 @@ PROMPT;
 
         Log::log(
             'OSINT AI Analysis complete',
-            'AI analysis finished for keyword: '.$keyword,
+            'AI analysis finished for keyword: '.$keyword. ', using the ai model '.$ai_model. 'and max tokens '.$max_tokens,
             LogType::API,
             $aiData ?? null
         );
