@@ -357,40 +357,76 @@ $relatedCount = 0;
 
                 <div class="mb-4">
                     <label class="form-label text-muted small fw-bold text-uppercase ps-2 mb-3 d-block">
-                        Analysis Engine
+                        Analysis Engine (Optional)
                     </label>
 
                     <!--  PRIMARY MODELS -->
                     <div class="row g-3 mb-2">
 
-                        <!--  MINI -->
+                        <!--  FAST -->
                         <div class="col-md-4">
                             <input type="radio" class="btn-check" name="ai_model" id="model-mini" value="gpt-4o-mini">
                             <label class="card model-card h-100 p-3 border-0 shadow-sm" for="model-mini">
-                                <i class="bi bi-lightning-charge text-warning fs-4 mb-2"></i>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <i class="bi bi-lightning-charge text-warning fs-4"></i>
+                                    <span class="badge bg-light text-muted">Fast</span>
+                                </div>
+
                                 <h6 class="fw-bold mb-1">GPT-4o Mini</h6>
-                                <small class="text-muted">Fast filtering & ingestion</small>
+                                <small class="text-muted d-block mb-2">
+                                    High-speed OSINT ingestion & filtering
+                                </small>
+
+                                <div class="small text-muted">
+                                    ✔ Tagging & classification<br>
+                                    ✔ Real-time feeds<br>
+                                    ✔ Low cost processing
+                                </div>
                             </label>
                         </div>
 
-                        <!--  4o -->
+                        <!--  BALANCED -->
                         <div class="col-md-4">
                             <input type="radio" class="btn-check" name="ai_model" id="model-4o" value="gpt-4o" checked>
                             <label class="card model-card h-100 p-3 border-0 shadow model-selected" for="model-4o">
-                                <i class="bi bi-cpu text-primary fs-4 mb-2"></i>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <i class="bi bi-cpu text-primary fs-4"></i>
+                                    <span class="badge bg-primary-subtle text-primary">Recommended</span>
+                                </div>
+
                                 <h6 class="fw-bold mb-1">GPT-4o</h6>
-                                <small class="text-muted">Balanced OSINT analysis</small>
+                                <small class="text-muted d-block mb-2">
+                                    Balanced intelligence for OSINT analysis
+                                </small>
+
+                                <div class="small text-muted">
+                                    ✔ Threat detection<br>
+                                    ✔ Structured JSON output<br>
+                                    ✔ Best overall performance
+                                </div>
                             </label>
                         </div>
 
-                        <!--  THINKING -->
+                        <!--  ADVANCED -->
                         <div class="col-md-4">
                             <input type="radio" class="btn-check" name="ai_model" id="model-thinking"
                                 value="gpt-5-thinking">
                             <label class="card model-card h-100 p-3 border-0 shadow-sm" for="model-thinking">
-                                <i class="bi bi-brain text-danger fs-4 mb-2"></i>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <i class="bi bi-brain text-danger fs-4"></i>
+                                    <span class="badge bg-light text-muted">Advanced</span>
+                                </div>
+
                                 <h6 class="fw-bold mb-1">GPT-5 Thinking</h6>
-                                <small class="text-muted">Deep intelligence reasoning</small>
+                                <small class="text-muted d-block mb-2">
+                                    Deep intelligence & high-risk analysis
+                                </small>
+
+                                <div class="small text-muted">
+                                    ✔ Complex reasoning<br>
+                                    ✔ Strategic insights<br>
+                                    ✔ High accuracy analysis
+                                </div>
                             </label>
                         </div>
 
@@ -400,7 +436,7 @@ $relatedCount = 0;
                     <div class="text-center">
                         <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-4"
                             data-bs-toggle="collapse" data-bs-target="#more-models">
-                            <i class="bi bi-grid me-1"></i> More Models
+                            <i class="bi bi-grid me-1"></i> More OpenAI Models
                         </button>
                     </div>
 
@@ -408,79 +444,40 @@ $relatedCount = 0;
                     <div class="collapse mt-3" id="more-models">
                         <div class="row g-3">
 
-                            <!--  GEMINI PRO -->
+                            <!--  NANO -->
                             <div class="col-md-4">
-                                <input type="radio" class="btn-check" name="ai_model" id="model-gemini-pro"
-                                    value="gemini-1.5-pro">
-                                <label class="card model-card h-100 p-3 border-0 shadow-sm" for="model-gemini-pro">
-                                    <i class="bi bi-globe text-success fs-4 mb-2"></i>
-                                    <h6 class="fw-bold mb-1">Gemini Pro</h6>
+                                <input type="radio" class="btn-check" name="ai_model" id="model-nano"
+                                    value="gpt-5-nano">
+                                <label class="card model-card h-100 p-3 border-0 shadow-sm" for="model-nano">
+                                    <i class="bi bi-lightning text-warning fs-4 mb-2"></i>
+                                    <h6 class="fw-bold mb-1">GPT-5 Nano</h6>
                                     <small class="text-muted">
-                                        Long-context analysis (bulk data)
+                                        Ultra-lightweight & cheapest processing
                                     </small>
                                 </label>
                             </div>
 
-                            <!--  GEMINI FLASH -->
+                            <!--  BALANCED MINI -->
                             <div class="col-md-4">
-                                <input type="radio" class="btn-check" name="ai_model" id="model-gemini-flash"
-                                    value="gemini-1.5-flash">
-                                <label class="card model-card h-100 p-3 border-0 shadow-sm" for="model-gemini-flash">
-                                    <i class="bi bi-speedometer2 text-info fs-4 mb-2"></i>
-                                    <h6 class="fw-bold mb-1">Gemini Flash</h6>
+                                <input type="radio" class="btn-check" name="ai_model" id="model-balanced-mini"
+                                    value="gpt-5-mini">
+                                <label class="card model-card h-100 p-3 border-0 shadow-sm" for="model-balanced-mini">
+                                    <i class="bi bi-sliders text-primary fs-4 mb-2"></i>
+                                    <h6 class="fw-bold mb-1">GPT-5 Mini</h6>
                                     <small class="text-muted">
-                                        Ultra-fast real-time analysis
+                                        Balanced speed + reasoning
                                     </small>
                                 </label>
                             </div>
 
-                            <!--  CLAUDE OPUS -->
+                            <!--  FULL GPT-5 -->
                             <div class="col-md-4">
-                                <input type="radio" class="btn-check" name="ai_model" id="model-claude-opus"
-                                    value="claude-3-opus">
-                                <label class="card model-card h-100 p-3 border-0 shadow-sm" for="model-claude-opus">
-                                    <i class="bi bi-file-earmark-text text-dark fs-4 mb-2"></i>
-                                    <h6 class="fw-bold mb-1">Claude Opus</h6>
+                                <input type="radio" class="btn-check" name="ai_model" id="model-gpt5" value="gpt-5">
+                                <label class="card model-card h-100 p-3 border-0 shadow-sm" for="model-gpt5">
+                                    <i class="bi bi-stars text-danger fs-4 mb-2"></i>
+                                    <h6 class="fw-bold mb-1">GPT-5</h6>
                                     <small class="text-muted">
-                                        Detailed intelligence reports
-                                    </small>
-                                </label>
-                            </div>
-
-                            <!--  CLAUDE HAIKU -->
-                            <div class="col-md-4">
-                                <input type="radio" class="btn-check" name="ai_model" id="model-claude-haiku"
-                                    value="claude-3-haiku">
-                                <label class="card model-card h-100 p-3 border-0 shadow-sm" for="model-claude-haiku">
-                                    <i class="bi bi-lightning text-secondary fs-4 mb-2"></i>
-                                    <h6 class="fw-bold mb-1">Claude Haiku</h6>
-                                    <small class="text-muted">
-                                        Fast classification & tagging
-                                    </small>
-                                </label>
-                            </div>
-
-                            <!--  MISTRAL -->
-                            <div class="col-md-4">
-                                <input type="radio" class="btn-check" name="ai_model" id="model-mistral"
-                                    value="mistral-large">
-                                <label class="card model-card h-100 p-3 border-0 shadow-sm" for="model-mistral">
-                                    <i class="bi bi-diagram-3 text-primary fs-4 mb-2"></i>
-                                    <h6 class="fw-bold mb-1">Mistral Large</h6>
-                                    <small class="text-muted">
-                                        Efficient alternative AI model
-                                    </small>
-                                </label>
-                            </div>
-
-                            <!-- LLAMA -->
-                            <div class="col-md-4">
-                                <input type="radio" class="btn-check" name="ai_model" id="model-llama" value="llama-3">
-                                <label class="card model-card h-100 p-3 border-0 shadow-sm" for="model-llama">
-                                    <i class="bi bi-shield-lock text-success fs-4 mb-2"></i>
-                                    <h6 class="fw-bold mb-1">LLaMA 3</h6>
-                                    <small class="text-muted">
-                                        Private / on-prem analysis
+                                        Maximum intelligence & reasoning power
                                     </small>
                                 </label>
                             </div>
@@ -489,7 +486,7 @@ $relatedCount = 0;
                     </div>
                 </div>
 
-                <!-- 🎚 TOKENS -->
+                <!-- TOKENS -->
                 <div class="row align-items-end g-4">
                     <div class="col-md-12">
                         <div class="d-flex justify-content-between align-items-center mb-2 px-2">
