@@ -3,7 +3,7 @@ use yii\helpers\Html;
 use yii\widgets\ActiveForm;
 use yii\helpers\Url;
 
-$this->title = 'Intercepted Data Submission';
+$this->title = 'Analyze Individual Posts';
 ?>
 
 <div class="message-upload">
@@ -15,7 +15,7 @@ $this->title = 'Intercepted Data Submission';
                         <div class="bg-primary rounded-3 p-2 d-inline-block mb-2">
                             <i class="bi bi-shield-lock-fill fs-3"></i>
                         </div>
-                        <h3 class="mb-0 fw-bold">Intercepted Data Submission</h3>
+                        <h3 class="mb-0 fw-bold">Analyze Individual Posts</h3>
                         <p class="text-white-50 mb-0 small">Submit intercepted data in various formats (Text, Image, Audio)</p>
                     </div>
                 </div>

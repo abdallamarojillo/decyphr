@@ -41,12 +41,12 @@ $this->beginPage();
                     </li>
                     <li class="nav-item me-2">
                         <a class="nav-link fw-medium px-3 text-secondary" href="<?= Url::to(['message/index']) ?>">
-                            <i class="fas fa-envelope me-1 opacity-75"></i> Messages
+                            <i class="fas fa-envelope me-1 opacity-75"></i> Individual Posts
                         </a>
                     </li>
                     <li class="nav-item me-2">
                         <a class="nav-link fw-medium px-3 text-secondary" href="<?= Url::to(['osint/index']) ?>">
-                            <i class="fab fa-connectdevelop me-1 opacity-75"></i> OSINT
+                            <i class="fab fa-connectdevelop me-1 opacity-75"></i> Analyze Posts
                         </a>
                     </li>
                     <li class="nav-item me-2">
@@ -61,7 +61,7 @@ $this->beginPage();
                 <?php if (!Yii::$app->user->isGuest): ?>
                     <li class="nav-item">
                         <a class="nav-link fw-semibold text-primary px-3" href="<?= Url::to(['message/upload']) ?>">
-                            <i class="fas fa-cloud-upload-alt me-1"></i> Upload
+                            <i class="fas fa-cloud-upload-alt me-1"></i> Analyze Individual Posts
                         </a>
                     </li>
                     <li class="nav-item ms-lg-3">

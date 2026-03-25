@@ -616,6 +616,42 @@ class OsintController extends Controller
         return $this->redirect(['view', 'request_id' => $request_id]);
     }
 
+    public function actionDeepDecodePost()
+    {
+        Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
+
+        $text = trim((string) Yii::$app->request->post('text'));
+        $postId = Yii::$app->request->post('post_id');
+        $platform = trim((string) Yii::$app->request->post('platform'));
+        $author = trim((string) Yii::$app->request->post('author'));
+
+        if ($text === '') {
+            return ['success' => false, 'error' => 'No post text provided.'];
+        }
+
+        try {
+            $analyzer = Yii::$app->aiAnalyzer; 
+            $result = $analyzer->analyzeRawTextForOsint($text, [
+                'platform' => $platform,
+                'author' => $author,
+                'post_id' => $postId,
+            ]);
+
+            return [
+                'success' => true,
+                'data' => $result,
+                'post_id' => $postId,
+            ];
+        } catch (\Throwable $e) {
+            Yii::error('Deep decode failed: ' . $e->getMessage(), __METHOD__);
+
+            return [
+                'success' => false,
+                'error' => $e->getMessage(),
+            ];
+        }
+    }
+
 
     /**
      * Endpoint for AJAX Charting & Visuals
