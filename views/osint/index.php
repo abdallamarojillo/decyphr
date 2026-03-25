@@ -400,9 +400,7 @@ $relatedCount = 0;
                                 </small>
 
                                 <div class="small text-muted">
-                                    ✔ Threat detection<br>
-                                    ✔ Structured JSON output<br>
-                                    ✔ Best overall performance
+                                    
                                 </div>
                             </label>
                         </div>
