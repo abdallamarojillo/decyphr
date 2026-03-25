@@ -235,7 +235,7 @@ private function getAiIntelligence($keyword, $data, array $options = [])
     }
 
     $ai_model = $options['ai_model'] ?? 'gpt-4o';
-    $max_tokens = (int)($options['$max_tokens'] ?? 2000);
+    $max_tokens = (int)($options['max_tokens'] ?? 2000);
 
     // Collect social media evidence
     $contentSummary = "";
