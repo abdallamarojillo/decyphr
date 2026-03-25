@@ -497,8 +497,8 @@ $relatedCount = 0;
                         </div>
 
                         <div class="p-3 bg-light rounded-4 border">
-                            <input type="range" class="form-range" id="max_tokens" name="max_tokens" min="256"
-                                max="16384" step="256" value="2000">
+                            <input type="range" class="form-range" id="max_tokens" name="max_tokens" min="200"
+                                max="5000" step="200" value="2000">
                             <div class="d-flex justify-content-between text-muted mt-1" style="font-size: 0.75rem;">
                                 <span id="length-label">Standard Report</span>
                                 <i class="bi bi-info-circle"
