@@ -213,7 +213,7 @@ $headlineAvg = (int)($metrics['avgScore'] ?? 0);
 }
 </style>
 
-<div class="container py-4">
+<div class="container- py-4">
 
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end gap-3 mb-4">
         <div>
@@ -228,6 +228,7 @@ $headlineAvg = (int)($metrics['avgScore'] ?? 0);
                 <span class="badge bg-light text-dark border-0 shadow-none px-2 py-1">Facebook</span>
                 <span class="badge bg-light text-dark border-0 shadow-none px-2 py-1">TikTok</span>
                 <span class="badge bg-light text-dark border-0 shadow-none px-2 py-1">Reddit</span>
+                <span class="badge bg-light text-dark border-0 shadow-none px-2 py-1">Google News</span>
             </div>
         </div>
 
@@ -523,7 +524,7 @@ $headlineAvg = (int)($metrics['avgScore'] ?? 0);
 
     <hr class="opacity-10 mb-4">
 
-    <div class="container py-4">
+    <div class="container- py-4">
         <div class="mb-4">
             <label class="text-uppercase fw-bold text-secondary mb-3 d-block" style="font-size: 0.75rem; letter-spacing: 1.5px;">
                 <i class="bi bi-broadcast-pin me-1"></i> Threat Scenarios
@@ -602,7 +603,7 @@ $headlineAvg = (int)($metrics['avgScore'] ?? 0);
                                 <div class="workflow-step">
                                     <div class="icon-wrap mb-2"><i class="bi bi-collection"></i></div>
                                     <div class="small fw-semibold">Collect</div>
-                                    <div class="x-small text-muted">X, Facebook, TikTok, Reddit</div>
+                                    <div class="x-small text-muted">X, Facebook, TikTok, Reddit, Google News</div>
                                 </div>
                             </div>
                             <div class="col-md-3">
@@ -831,7 +832,9 @@ $headlineAvg = (int)($metrics['avgScore'] ?? 0);
                                     <div>
                                         <span class="badge rounded-pill bg-light text-dark border mb-2">ID: <?= Html::encode($model->request_id) ?></span>
                                         <h4 class="card-title fw-bold mb-1 text-uppercase">
-                                            <i class="bi bi-shield-exclamation me-2"></i><?= Html::encode($model->keyword) ?>
+                                            <i class="bi bi-shield-exclamation me-2"></i>
+                                            <a href="<?= Url::to(['view', 'request_id' => $model->request_id]) ?>"
+                                                class="text-link text-decoration-none"><?= Html::encode($model->keyword) ?></a>
                                         </h4>
                                         <div class="text-muted small">
                                             <i class="bi bi-clock me-1"></i> Analysis Date:

@@ -127,58 +127,110 @@ class GlobalOSINTAnalyzer extends Component
         // ENHANCEMENT: Targeted Query Construction
         // We append "Kenya" to the keyword to force the social media algorithm 
         // to prioritize Kenyan-based results.
-        $targetedQuery = $keyword . " Kenya";
+        $targetedQuery = trim($keyword . ' Kenya');
+
         $promises = [
-
-            'x' => $this->client->getAsync('https://twitter-api45.p.rapidapi.com/search.php', [
-                'headers' => ['X-RapidAPI-Key' => $this->apiKey, 'X-RapidAPI-Host' => 'twitter-api45.p.rapidapi.com'],
-                'query' => ['query' => $targetedQuery],
-            ]),
-
-            'tiktok' => $this->client->getAsync('https://tiktok-api6.p.rapidapi.com/search/general/query',
+            'x' => $this->client->getAsync(
+                'https://twitter-api45.p.rapidapi.com/search.php',
                 [
                     'headers' => [
                         'X-RapidAPI-Key' => $this->apiKey,
-                        'X-RapidAPI-Host' => 'tiktok-api6.p.rapidapi.com'
+                        'X-RapidAPI-Host' => 'twitter-api45.p.rapidapi.com',
                     ],
                     'query' => [
-                        'query' => $targetedQuery
+                        'query' => $targetedQuery,
                     ],
-            ]),
+                    'http_errors' => false,
+                    'timeout' => 30,
+                ]
+            ),
+
+            'tiktok' => $this->client->getAsync(
+                'https://tiktok-api6.p.rapidapi.com/search/general/query',
+                [
+                    'headers' => [
+                        'X-RapidAPI-Key' => $this->apiKey,
+                        'X-RapidAPI-Host' => 'tiktok-api6.p.rapidapi.com',
+                    ],
+                    'query' => [
+                        'query' => $targetedQuery,
+                    ],
+                    'http_errors' => false,
+                    'timeout' => 30,
+                ]
+            ),
 
             'facebook' => $this->client->getAsync(
-            'https://facebook-scraper3.p.rapidapi.com/search/posts',
-            [
-                'headers' => [
-                    'X-RapidAPI-Key' => $this->apiKey,
-                    'X-RapidAPI-Host' => 'facebook-scraper3.p.rapidapi.com'
-                ],
-                'query' => [
-                    'query' => $targetedQuery
-                ],
-            ]),
+                'https://facebook-scraper3.p.rapidapi.com/search/posts',
+                [
+                    'headers' => [
+                        'X-RapidAPI-Key' => $this->apiKey,
+                        'X-RapidAPI-Host' => 'facebook-scraper3.p.rapidapi.com',
+                    ],
+                    'query' => [
+                        'query' => $targetedQuery,
+                    ],
+                    'http_errors' => false,
+                    'timeout' => 30,
+                ]
+            ),
 
             'reddit' => $this->client->getAsync(
-            'https://reddit34.p.rapidapi.com/getSearchPosts',
-            [
-                'headers' => [
-                    'X-RapidAPI-Key' => $this->apiKey,
-                    'X-RapidAPI-Host' => 'reddit34.p.rapidapi.com'
-                ],
-                'query' => [
-                    'query' => $targetedQuery
-                ],
-            ]),
+                'https://reddit34.p.rapidapi.com/getSearchPosts',
+                [
+                    'headers' => [
+                        'X-RapidAPI-Key' => $this->apiKey,
+                        'X-RapidAPI-Host' => 'reddit34.p.rapidapi.com',
+                    ],
+                    'query' => [
+                        'query' => $targetedQuery,
+                    ],
+                    'http_errors' => false,
+                    'timeout' => 30,
+                ]
+            ),
 
+            'google_news' => $this->client->getAsync(
+                'https://google-news13.p.rapidapi.com/search',
+                [
+                    'headers' => [
+                        'X-RapidAPI-Key' => $this->apiKey,
+                        'X-RapidAPI-Host' => 'google-news13.p.rapidapi.com',
+                        'Content-Type' => 'application/json',
+                    ],
+                    'query' => [
+                        'keyword' => $targetedQuery,
+                        'lr' => 'en-US',
+                    ],
+                    'http_errors' => false,
+                    'timeout' => 30,
+                ]
+            ),
         ];
 
         $responses = Promise\Utils::settle($promises)->wait();
+
+        foreach ($responses as $platform => $response) {
+            if ($response['state'] === 'fulfilled') {
+                Yii::info([
+                    'platform' => $platform,
+                    'http_status' => $response['value']->getStatusCode(),
+                    'body' => (string)$response['value']->getBody(),
+                ], 'osint.fetch');
+            } else {
+                Yii::error([
+                    'platform' => $platform,
+                    'error' => (string)$response['reason'],
+                ], 'osint.fetch');
+            }
+        }
 
         $rawPlatforms = [
             'x' => $this->parseXResponse($responses['x']),
             'tiktok' => $this->parseTikTokResponse($responses['tiktok']),
             'facebook' => $this->parseFacebookResponse($responses['facebook']),
             'reddit' => $this->parseRedditResponse($responses['reddit']),
+            'google_news' => $this->parseGoogleNewsResponse($responses['google_news']),
         ];
 
         $aiAnalysis = $this->getAiIntelligence($keyword, $rawPlatforms, $options);
@@ -615,6 +667,69 @@ PROMPT;
         return [
             'data' => $posts,
             'status' => count($posts) > 0 ? 'OK' : 'Empty'
+        ];
+    }
+
+    private function parseGoogleNewsResponse($res)
+    {
+        if ($res['state'] !== 'fulfilled') {
+            return ['data' => [], 'status' => 'Fail'];
+        }
+
+        $json = json_decode((string)$res['value']->getBody(), true);
+
+        if (!$json || (($json['status'] ?? '') !== 'success')) {
+            return ['data' => [], 'status' => 'Fail'];
+        }
+
+        $articles = [];
+
+        foreach (($json['items'] ?? []) as $item) {
+            $title = trim($item['title'] ?? '');
+            $snippet = trim($item['snippet'] ?? '');
+            $text = trim($title . ($snippet !== '' ? ' ' . $snippet : ''));
+
+            $timestamp = $item['timestamp'] ?? null;
+
+            if ($timestamp && is_numeric($timestamp)) {
+                $timestamp = (int) $timestamp;
+
+                // milliseconds -> seconds
+                if ($timestamp > 9999999999) {
+                    $timestamp = (int) floor($timestamp / 1000);
+                }
+            } else {
+                $timestamp = null;
+            }
+
+            $articles[] = [
+                'text' => $text,
+                'author' => $item['publisher'] ?? 'Unknown',
+                'created_at' => $timestamp
+                    ? date('Y-m-d H:i:s', $timestamp)
+                    : 'N/A',
+                'location' => 'N/A',
+                'engagement' => [
+                    'likes'    => 0,
+                    'shares'   => 0,
+                    'comments' => 0,
+                ],
+                'title' => $title,
+                'snippet' => $snippet,
+                'publisher' => $item['publisher'] ?? null,
+                'url' => $item['newsUrl'] ?? null,
+                'image' => $item['images']['thumbnailProxied']
+                    ?? $item['images']['thumbnail']
+                    ?? null,
+                'post_id' => md5(($item['newsUrl'] ?? '') . '|' . $title),
+                'source_type' => 'google_news',
+                'source_category' => 'news',
+            ];
+        }
+
+        return [
+            'data' => $articles,
+            'status' => count($articles) > 0 ? 'OK' : 'Empty'
         ];
     }
 
