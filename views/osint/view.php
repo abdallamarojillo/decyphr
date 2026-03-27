@@ -346,7 +346,7 @@ $relatedCount = 0;
 
                                                     <h3 class="fw-bold mb-2 d-flex align-items-center gap-2">
                                                         <i class="bi bi-shield-exclamation text-danger"></i>
-                                                        <span><?= Html::encode($model->keyword) ?></span>
+                                                        <span class="text-uppercase"><?= Html::encode($model->keyword) ?></span>
                                                     </h3>
 
                                                     <div class="text-muted small">
@@ -385,6 +385,22 @@ $relatedCount = 0;
                                                     </div>
                                                 </div>
                                             </div>
+
+                                            <div class="row">
+                                                <div class="col-md-3 mb-3">
+                                                    <?= Html::a(
+                                                        '<i class="bi bi-file-earmark-pdf me-1"></i> Generate a Brief',
+                                                        ['export-pdf', 'id' => $model->id],
+                                                        [
+                                                            'class' => 'btn btn-success rounded-pill',
+                                                            'target' => '_blank',
+                                                            'data-pjax' => 0,
+                                                        ]
+                                                    ) ?>
+                                                </div>
+                                            </div>
+
+                                            
 
                                             <!-- Executive Summary -->
                                             <div class="card border-0 bg-light rounded-4 mb-4">

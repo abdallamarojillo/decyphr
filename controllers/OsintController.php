@@ -2,6 +2,7 @@
 
 namespace app\controllers;
 
+use app\components\OsintDossier;
 use app\helpers\GlobalHelper;
 use Yii;
 use yii\web\Controller;
@@ -651,6 +652,230 @@ class OsintController extends Controller
             ];
         }
     }
+
+
+public function actionExportPdf($id)
+{
+    $model = OsintAiAnalysis::findOne($id);
+
+    if (!$model) {
+        throw new NotFoundHttpException('Report not found.');
+    }
+
+    $report = is_array($model->report) ? $model->report : json_decode($model->report, true);
+    if (!is_array($report)) {
+        $report = [];
+    }
+
+    $scoreRaw = (float) ($report['numerical_score'] ?? 0);
+    $displayScore = $scoreRaw <= 10 ? $scoreRaw * 10 : $scoreRaw;
+    $trajectory = $report['risk_trajectory'] ?? 'Stable';
+
+    $statusLabel = 'Low';
+    if ($displayScore > 70) {
+        $statusLabel = 'Critical';
+    } elseif ($displayScore > 40) {
+        $statusLabel = 'Elevated';
+    }
+
+    $localizedRisks = (array) ($report['localized_risks'] ?? []);
+    $decodedLanguage = (array) ($report['decoded_language'] ?? []);
+    $locationSuggestions = (array) ($report['location_suggestions'] ?? []);
+    $analysisBasis = (array) ($report['analysis_basis'] ?? []);
+    $recommendedInterventions = $report['recommended_interventions'] ?? [];
+
+    if (!is_array($recommendedInterventions)) {
+        $recommendedInterventions = [$recommendedInterventions];
+    }
+
+    $pdf = new OsintDossier();
+    $pdf->reportTitle = 'Keyword Brief';
+    $pdf->generatedAt = date('d M Y H:i');
+    $pdf->classification = 'INTERNAL';
+    $pdf->SetTitle('Keyword Insights: Strategic Intelligence Report');
+    $pdf->SetAuthor(\Yii::$app->name);
+    $pdf->SetMargins(10, 10, 10);
+    $pdf->SetAutoPageBreak(true, 20);
+    $pdf->AddPage();
+
+    // Cover summary
+    $pdf->SetFont('Arial', 'B', 20);
+    $pdf->SetTextColor(13, 44, 84);
+    $pdf->Cell(0, 10, 'Keyword Insights: Strategic Intelligence Report', 0, 1, 'L');
+    $pdf->Ln(2);
+
+    $pdf->SetFont('Arial', '', 10);
+    $pdf->SetTextColor(90, 90, 90);
+    $pdf->Cell(0, 6, 'Reference ID: ' . $model->id, 0, 1, 'L');
+    $pdf->Cell(0, 6, 'Request ID: ' . $model->request_id, 0, 1, 'L');
+    $pdf->Cell(0, 6, 'Keyword: ' . $model->keyword, 0, 1, 'L');
+    $pdf->Cell(0, 6, 'Analysis Date: ' . date('d M Y H:i', strtotime($model->analyzed_at)), 0, 1, 'L');
+    $pdf->Ln(3);
+
+    $pdf->InfoBox('Threat Exposure', number_format($displayScore, 1) . '%');
+    $pdf->InfoBox('Status', $statusLabel);
+    $pdf->InfoBox('Risk Trajectory', $trajectory);
+
+    // Executive Summary
+    $pdf->SectionTitle('1. Executive Summary');
+    $pdf->Paragraph((string) ($report['threat_summary'] ?? 'No summary available.'));
+
+    // Geographic Threat Vectors
+    $pdf->SectionTitle('2. Geographic Threat Vectors');
+    if (!empty($localizedRisks)) {
+        $pdf->TableHeader(
+            ['Location', 'Severity', 'Risk Description'],
+            [45, 30, 115]
+        );
+
+        foreach ($localizedRisks as $risk) {
+            $pdf->TableRow([
+                (string) ($risk['location'] ?? 'Unknown'),
+                (string) ($risk['severity'] ?? 'Unspecified'),
+                (string) ($risk['risk_description'] ?? '-'),
+            ], [45, 30, 115]);
+        }
+    } else {
+        $pdf->Paragraph('No geographic risks identified.');
+    }
+
+    // Decoded Language
+    $pdf->SectionTitle('3. Decoded Language and Signals');
+    if (!empty($decodedLanguage)) {
+        $pdf->TableHeader(
+            ['Original Term', 'Language', 'Meaning', 'Explanation'],
+            [35, 25, 40, 90]
+        );
+
+        foreach ($decodedLanguage as $item) {
+            $pdf->TableRow([
+                (string) ($item['original_term'] ?? '-'),
+                (string) ($item['language'] ?? '-'),
+                (string) ($item['decoded_meaning'] ?? '-'),
+                (string) ($item['contextual_explanation'] ?? '-'),
+            ], [35, 25, 40, 90]);
+        }
+    } else {
+        $pdf->Paragraph('No decoded language items available.');
+    }
+
+    // Surveillance
+    $pdf->SectionTitle('4. Surveillance Protocol');
+    if (!empty($locationSuggestions)) {
+        foreach ($locationSuggestions as $loc) {
+            $pdf->SetFont('Arial', 'B', 10);
+            $pdf->SetTextColor(30, 30, 30);
+            $pdf->Cell(0, 6, (string) ($loc['location_name'] ?? 'Unnamed location'), 0, 1);
+            $pdf->SetFont('Arial', '', 10);
+            $pdf->SetTextColor(70, 70, 70);
+            $pdf->MultiCell(0, 6, (string) ($loc['reason'] ?? 'No reason provided.'));
+            $pdf->Ln(2);
+        }
+    } else {
+        $pdf->Paragraph('No surveillance recommendations provided.');
+    }
+
+    // Methodology
+    $pdf->SectionTitle('5. Analytical Methodology');
+    if (!empty($analysisBasis)) {
+        foreach ($analysisBasis as $index => $analysis) {
+            $pdf->SetFont('Arial', 'B', 10);
+            $pdf->SetTextColor(30, 30, 30);
+            $pdf->Cell(0, 6, 'Analysis Segment ' . ($index + 1), 0, 1);
+
+            $pdf->LabelValueRow(
+                'Indicators:',
+                is_array($analysis['indicators_detected'] ?? null)
+                    ? implode(', ', $analysis['indicators_detected'])
+                    : (string) ($analysis['indicators_detected'] ?? 'Not provided')
+            );
+
+            $quotes = (array) ($analysis['evidence_quotes'] ?? []);
+            if (!empty($quotes)) {
+                $pdf->SetFont('Arial', 'B', 10);
+                $pdf->Cell(0, 7, 'Evidence Quotes:', 0, 1);
+                foreach ($quotes as $quote) {
+                    $pdf->BulletItem((string) $quote);
+                }
+            }
+
+            $pdf->LabelValueRow(
+                'Inference Rules:',
+                is_array($analysis['inference_rules_applied'] ?? null)
+                    ? implode(', ', $analysis['inference_rules_applied'])
+                    : (string) ($analysis['inference_rules_applied'] ?? 'Not provided')
+            );
+
+            $pdf->LabelValueRow(
+                'Uncertainty:',
+                is_array($analysis['uncertainty_factors'] ?? null)
+                    ? implode(', ', $analysis['uncertainty_factors'])
+                    : (string) ($analysis['uncertainty_factors'] ?? 'None stated')
+            );
+
+            $pdf->Ln(3);
+        }
+    } else {
+        $pdf->Paragraph('No analytical methodology data available.');
+    }
+
+    // Recommended interventions
+    $pdf->SectionTitle('6. Recommended Interventions');
+    if (!empty($recommendedInterventions)) {
+        $pdf->TableHeader(
+            ['Action', 'Responsible Entity', 'Priority'],
+            [95, 60, 35]
+        );
+
+        foreach ($recommendedInterventions as $action) {
+            $entities = $action['responsible_entity'] ?? [];
+            if (!is_array($entities)) {
+                $entities = [$entities];
+            }
+
+            $pdf->TableRow([
+                (string) ($action['action'] ?? '-'),
+                implode(', ', array_map('strval', $entities)),
+                (string) ($action['priority'] ?? '-'),
+            ], [95, 60, 35]);
+        }
+    } else {
+        $pdf->Paragraph('No recommended interventions available.');
+    }
+
+    // Optional appendix: related posts
+    $posts = OsintPost::find()
+        ->where(['request_id' => $model->request_id])
+        ->orderBy(['created_at' => SORT_DESC])
+        ->limit(20)
+        ->all();
+
+    if (!empty($posts)) {
+        $pdf->SectionTitle('Appendix A. Related Source Posts');
+        $pdf->TableHeader(
+            ['Platform', 'Author', 'Content'],
+            [25, 35, 130]
+        );
+
+        foreach ($posts as $post) {
+            $pdf->TableRow([
+                (string) ($post->platform ?? '-'),
+                (string) ($post->author ?? '-'),
+                (string) ($post->text ?? '-'),
+            ], [25, 35, 130]);
+        }
+    }
+
+    return \Yii::$app->response->sendContentAsFile(
+        $pdf->Output('S'),
+        'intelligence_dossier_' . $model->id . '.pdf',
+        [
+            'mimeType' => 'application/pdf',
+            'inline' => true,
+        ]
+    );
+}
+    
 
 
     /**
