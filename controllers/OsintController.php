@@ -77,6 +77,7 @@ class OsintController extends Controller
         if (!empty($highThreatIds)) {
             $relatedPosts = OsintPost::find()
                 ->where(['request_id' => $highThreatIds])
+                ->orderBy(['created_at' => SORT_DESC])
                 ->all();
         }
 
@@ -263,7 +264,7 @@ class OsintController extends Controller
         }
 
         $osintaidata = $query->all();
-        $relatedPosts = $postQuery->all();
+        $relatedPosts = $postQuery->orderBy(['created_at' => SORT_DESC])->all();
 
         if ($osintaidata == null) {
             throw new NotFoundHttpException('The requested data is not available');
