@@ -898,10 +898,19 @@ $relatedCount = 0;
                 aria-labelledby="chats-tables-tab">
 
                 <div class="section-shell">
-                    <div class="section-head">
-                        <h5 class="fw-bold mb-1"><i class="bi bi-chat-square-text-fill text-primary me-2"></i>Chats</h5>
-                        <small class="text-muted">Raw post conversations and evidence signals</small>
+                    <div class="section-head d-flex align-items-start justify-content-between gap-3 flex-wrap">
+                        <div>
+                            <h5 class="fw-bold mb-1">
+                                <i class="bi bi-chat-square-text-fill text-primary me-2"></i>Chats
+                            </h5>
+                            <small class="text-muted">Raw post conversations and evidence signals</small>
+                        </div>
+
+                        <button id="toggleAllMasks" class="btn btn-outline-success intel-action-btn ms-auto">
+                            <i class="bi bi-eye me-1"></i> Reveal Authors
+                        </button>
                     </div>
+
                     <div class="section-body">
                         <div class="row g-4">
                             <?php if (!empty($relatedPosts)): ?>
@@ -924,12 +933,7 @@ $relatedCount = 0;
                                     </div>
 
                                     <div class="d-flex justify-content-between align-items-start mb-2">
-                                        <div>
-                                            <div class="small text-muted mb-1">Request ID</div>
-                                            <div class="fw-bold"><?= Html::encode($post->request_id) ?></div>
-                                        </div>
                                         <div class="text-end">
-                                            <div class="small text-muted mb-1">Author</div>
                                             <div class="fw-bold">
                                                 <span class="masked-value"
                                                     data-real="<?= Html::encode($post->author) ?>"
@@ -1081,8 +1085,8 @@ $relatedCount = 0;
 
                 <div class="row mb-4">
                     <div class="col-md-12">
-                        <button id="toggleAllMasks" class="btn btn-outline-danger intel-action-btn float-end">
-                            <i class="bi bi-eye me-1"></i> Show Usernames
+                        <button id="toggleAllMasks" class="btn btn-outline-success intel-action-btn float-end">
+                            <i class="bi bi-eye me-1"></i> Reveal Authors
                         </button>
                     </div>
                 </div>
@@ -1711,7 +1715,7 @@ $(document).on('click', '#toggleAllMasks, .toggle-mask', function () {
         return this.nodeType === 3;
     }).remove();
 
-    button.append(showReal ? ' Hide Usernames' : ' Show Usernames');
+    button.append(showReal ? ' Hide Authors' : ' Show Authors');
 });
 JS;
 

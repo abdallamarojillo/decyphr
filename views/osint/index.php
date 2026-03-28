@@ -581,7 +581,7 @@ $headlineAvg = (int)($metrics['avgScore'] ?? 0);
 
                                 <button class="btn btn-primary rounded-pill px-5 py-2 me-1 fw-bold text-uppercase shadow-sm hover-grow"
                                         type="submit" id="submit-scan">
-                                    Run Scan <i class="bi bi-arrow-right ms-1"></i>
+                                    Search
                                 </button>
                             </div>
                         </div>

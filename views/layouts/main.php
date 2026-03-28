@@ -14,6 +14,8 @@ $this->beginPage();
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <?php $this->registerCsrfMetaTags() ?>
     <title><?= Html::encode($this->title) ?> - <?= Yii::$app->name ?? '' ?></title>
+    <link rel="shortcut icon" href="<?= Yii::$app->params['logo'] ?>">
+    <link rel="icon" type="image/png" href="<?= Yii::$app->params['logo'] ?>">
     <?php $this->head() ?>
 </head>
 
